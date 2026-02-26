@@ -12,7 +12,6 @@ import CreateStory from '../screens/CreateStory/CreateStory';
 import RecentLikes from '../screens/Likes/RecentLikes';
 
 import ProfileTabTitle from '../components/ProfileTabTitle/ProfileTabTitle';
-import ProfileTabContent from '../components/ProfileTabContent/ProfileTabContent';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import SignupScreen from '../screens/Auth/SignupScreen';
 import { useAuth } from '../context/AuthContext';
@@ -25,6 +24,13 @@ import UserProfile from '../screens/UserProfile/UserProfile';
 
 import Settings from '../screens/Settings/Settings';
 import PostComments from '../screens/Comments/PostComments';
+
+import PostViewer from '../screens/PostViewer/PostViewer';
+import FollowList from '../screens/FollowList/FollowList';
+
+import ProfilePhotosTab from '../screens/Profile/ProfilePhotosTab';
+import ProfileVideosTab from '../screens/Profile/ProfileVideosTab';
+import ProfileSavedTab from '../screens/Profile/ProfileSavedTab';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -39,19 +45,19 @@ export const ProfileTabsNavigation = () => {
       }}
     >
       <ProfileTabs.Screen
-        name="Tab1"
+        name="Photos"
         options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Photos" /> }}
-        component={ProfileTabContent}
+        component={ProfilePhotosTab}
       />
       <ProfileTabs.Screen
-        name="Tab2"
+        name="Videos"
         options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Videos" /> }}
-        component={ProfileTabContent}
+        component={ProfileVideosTab}
       />
       <ProfileTabs.Screen
-        name="Tab3"
+        name="Saved"
         options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Saved" /> }}
-        component={ProfileTabContent}
+        component={ProfileSavedTab}
       />
     </ProfileTabs.Navigator>
   );
@@ -115,6 +121,9 @@ const AppNavigation = () => (
       component={PostComments}
       options={{ title: 'Comments' }}
     />
+
+    <Stack.Screen name={Routes.PostViewer} component={PostViewer} options={{ headerShown: false }} />
+    <Stack.Screen name={Routes.FollowList} component={FollowList} options={{ title: 'People' }} />
   </Stack.Navigator>
 );
 

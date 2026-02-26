@@ -24,10 +24,19 @@ const style = StyleSheet.create({
     fontSize: scaleFontSize(16),
     marginTop: verticalScale(5),
   },
+  mediaContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#E5E7EB',
+  },
   postImage: {
-    alignItems: 'center',
-    marginVertical: verticalScale(8),
     width: '100%',
+    height: 260,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+    marginTop: 8, // can be commented out if not needed
   },
   postImageSource: {
     width: '100%',

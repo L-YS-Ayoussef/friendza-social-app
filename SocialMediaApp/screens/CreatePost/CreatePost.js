@@ -10,20 +10,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Video from 'react-native-video';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import api from '../../services/api';
-import { Routes } from '../../navigation/Routes';
 import style from '../CreateContent/style';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
 
 const CreatePost = ({ navigation }) => {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedMedia, setSelectedMedia] = useState(null);
   const [caption, setCaption] = useState('');
   const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onPickFromGallery = async () => {
     const result = await launchImageLibrary({
-      mediaType: 'photo',
+      mediaType: 'mixed',
       selectionLimit: 1,
       quality: 0.9,
     });
@@ -35,12 +37,12 @@ const CreatePost = ({ navigation }) => {
     }
 
     const asset = result.assets?.[0];
-    if (asset) setSelectedImage(asset);
+    if (asset) setSelectedMedia(asset);
   };
 
   const onOpenCamera = async () => {
     const result = await launchCamera({
-      mediaType: 'photo',
+      mediaType: 'mixed',
       cameraType: 'back',
       quality: 0.9,
       saveToPhotos: false,
@@ -53,12 +55,12 @@ const CreatePost = ({ navigation }) => {
     }
 
     const asset = result.assets?.[0];
-    if (asset) setSelectedImage(asset);
+    if (asset) setSelectedMedia(asset);
   };
 
   const onCreatePost = async () => {
-    if (!selectedImage?.uri) {
-      Alert.alert('Missing image', 'Please select or capture an image');
+    if (!selectedMedia?.uri) {
+      Alert.alert('Missing media', 'Please select or capture an image/video');
       return;
     }
 
@@ -66,10 +68,13 @@ const CreatePost = ({ navigation }) => {
       setIsSubmitting(true);
 
       const formData = new FormData();
-      formData.append('image', {
-        uri: selectedImage.uri,
-        type: selectedImage.type || 'image/jpeg',
-        name: selectedImage.fileName || `post_${Date.now()}.jpg`,
+      const isVideo = selectedMedia.type?.startsWith('video/');
+      const defaultExt = isVideo ? 'mp4' : 'jpg';
+
+      formData.append('media', {
+        uri: selectedMedia.uri,
+        type: selectedMedia.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+        name: selectedMedia.fileName || `post_${Date.now()}.${defaultExt}`,
       });
 
       if (caption.trim()) formData.append('caption', caption.trim());
@@ -96,21 +101,36 @@ const CreatePost = ({ navigation }) => {
         <Text style={style.subtitle}>Upload from gallery or take a photo.</Text>
 
         <Text style={style.label}>Post image *</Text>
-        <View style={style.mediaActionRow}>
-          <TouchableOpacity style={style.mediaActionButton} onPress={onOpenCamera}>
-            <Text style={style.mediaActionButtonText}>Camera</Text>
+        <View style={style.sourceRow}>
+          <TouchableOpacity style={style.sourceIconButton} onPress={onOpenCamera}>
+            <FontAwesomeIcon icon={faCamera} size={18} color="#111827" />
           </TouchableOpacity>
-          <TouchableOpacity style={style.mediaActionButton} onPress={onPickFromGallery}>
-            <Text style={style.mediaActionButtonText}>Gallery</Text>
+
+          <TouchableOpacity style={[style.sourceIconButton, { marginLeft: 10 }]} onPress={onPickFromGallery}>
+            <FontAwesomeIcon icon={faImages} size={18} color="#111827" />
           </TouchableOpacity>
         </View>
 
         <View style={style.previewBox}>
-          {selectedImage?.uri ? (
-            <Image source={{ uri: selectedImage.uri }} style={style.previewImage} resizeMode="cover" />
+          {selectedMedia?.uri ? (
+            selectedMedia.type?.startsWith('video/') ? (
+              <Video
+                source={{ uri: selectedMedia.uri }}
+                style={style.previewImage}
+                resizeMode="cover"
+                paused={true} // preview is static for now
+              />
+            ) : (
+              <Image
+                source={{ uri: selectedMedia.uri }}
+                style={style.previewImage}
+                resizeMode="cover"
+              />
+            )
           ) : (
-            <Text style={style.previewPlaceholder}>No image selected</Text>
-          )}
+            <Text style={style.previewPlaceholder}>No image/video selected</Text>
+          )
+          }
         </View>
 
         <Text style={style.label}>Location (optional)</Text>

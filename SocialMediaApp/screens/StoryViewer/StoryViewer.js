@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   Animated,
   StatusBar,
+  Image 
 } from 'react-native';
+import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -77,20 +79,33 @@ const StoryViewer = ({ route, navigation }) => {
 
   return (
     <View style={style.container}>
-      <StatusBar barStyle="light-content" backgroundColor="black" />
-      <ImageBackground
-        source={
-          currentStory.storyImage
-            ? { uri: currentStory.storyImage }
-            : require('../../assets/images/default_post.png')
-        }
-        style={style.background}
-        resizeMode="cover"
-      >
-        <View style={style.overlay} />
+      {/* Media fills the whole screen */}
+      {currentStory.mediaType === 'video' ? (
+        <Video
+          source={{ uri: currentStory.storyImage }}
+          style={style.absoluteMedia}
+          resizeMode="cover"
+          paused={!autoPlayStories}
+          repeat={false}
+        />
+      ) : (
+        <ImageBackground
+          source={
+            currentStory.storyImage
+              ? { uri: currentStory.storyImage }
+              : require('../../assets/images/default_post.png')
+          }
+          style={style.absoluteMedia}
+          resizeMode="cover"
+        />
+      )}
 
-        <SafeAreaView style={style.safeArea}>
-          {/* Show progress only if auto-play is ON */}
+      {/* Dark overlay */}
+      <View style={style.overlay} />
+
+      {/* Top UI + bottom caption */}
+      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={style.safeOverlay}>
+        <View style={style.topArea}>
           {autoPlayStories && (
             <View style={style.progressRow}>
               {stories.map((_, index) => (
@@ -105,25 +120,36 @@ const StoryViewer = ({ route, navigation }) => {
           )}
 
           <View style={style.header}>
-            <Text style={style.headerName}>{currentStory.firstName}</Text>
+            <View style={style.headerLeft}>
+              <Image
+                source={
+                  currentStory.profileImage
+                    ? { uri: currentStory.profileImage }
+                    : require('../../assets/images/default_post.png')
+                }
+                style={style.headerAvatar}
+              />
+              <Text style={style.headerName}>{currentStory.firstName}</Text>
+            </View>
+
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <FontAwesomeIcon icon={faTimes} size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
+        </View>
 
-          {!!currentStory.caption && (
-            <View style={style.captionContainer}>
-              <Text style={style.captionText}>{currentStory.caption}</Text>
-            </View>
-          )}
-
-          {/* Right/left tap works always */}
-          <View style={style.tapLayer}>
-            <TouchableOpacity style={style.leftZone} activeOpacity={1} onPress={goPrev} />
-            <TouchableOpacity style={style.rightZone} activeOpacity={1} onPress={goNext} />
+        {!!currentStory.caption && (
+          <View style={style.captionContainer}>
+            <Text style={style.captionText}>{currentStory.caption}</Text>
           </View>
-        </SafeAreaView>
-      </ImageBackground>
+        )}
+      </SafeAreaView>
+
+      {/* Tap zones should be on top of media, but behind header/caption */}
+      <View style={style.tapLayer} pointerEvents="box-none">
+        <TouchableOpacity style={style.leftZone} activeOpacity={1} onPress={goPrev} />
+        <TouchableOpacity style={style.rightZone} activeOpacity={1} onPress={goNext} />
+      </View>
     </View>
   );
 };

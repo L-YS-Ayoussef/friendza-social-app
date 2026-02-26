@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -9,7 +11,8 @@ const mapStory = (row) => ({
   id: row.id,
   userId: row.user_id,
   caption: row.caption,
-  imageUrl: row.image_url,
+  mediaUrl: row.media_url,
+  mediaType: row.media_type,
   createdAt: row.created_at,
   expiresAt: row.expires_at,
   user: {
@@ -21,40 +24,37 @@ const mapStory = (row) => ({
 });
 
 // POST /api/stories (multipart/form-data)
-router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+router.post('/', authMiddleware, upload.single('media'), async (req, res) => {
   try {
-    const { caption } = req.body;
+    const { caption = '' } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required' });
+      return res.status(400).json({ message: 'Media file is required' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+    const mediaUrl = `/uploads/${req.file.filename}`;
 
-    const insertResult = await pool.query(
+    const result = await pool.query(
       `
-      INSERT INTO stories (user_id, image_url, caption)
-      VALUES ($1, $2, $3)
-      RETURNING id, user_id, image_url, caption, created_at, expires_at
+      INSERT INTO stories (user_id, caption, media_url, media_type, expires_at)
+      VALUES ($1, $2, $3, $4, NOW() + INTERVAL '24 hours')
+      RETURNING id, user_id, caption, media_url, media_type, created_at, expires_at
       `,
-      [req.userId, imageUrl, caption?.trim() || null]
+      [req.userId, caption, mediaUrl, mediaType]
     );
-
-    const userResult = await pool.query(
-      `SELECT id, username, full_name, avatar_url FROM users WHERE id = $1 LIMIT 1`,
-      [req.userId]
-    );
-
-    const storyRow = {
-      ...insertResult.rows[0],
-      ...userResult.rows[0],
-    };
 
     return res.status(201).json({
-      message: 'story created successfully',
-      story: mapStory(storyRow),
+      message: 'Story created successfully',
+      story: result.rows[0],
     });
   } catch (error) {
+    if (req.file?.filename) {
+      const filePath = path.join(__dirname, '../../uploads', req.file.filename);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
+    }
     console.error('Create story error:', error);
     return res.status(500).json({ message: 'server error while creating story' });
   }
@@ -75,27 +75,23 @@ router.get('/active', authMiddleware, async (req, res) => {
         SELECT $1::INT AS user_id
         UNION
         SELECT following_id FROM follows WHERE follower_id = $1
-      ),
-      latest_story_per_user AS (
-        SELECT DISTINCT ON (s.user_id)
-          s.id,
-          s.user_id,
-          s.image_url,
-          s.caption,
-          s.created_at,
-          s.expires_at,
-          u.username,
-          u.full_name,
-          u.avatar_url
-        FROM stories s
-        INNER JOIN visible_users vu ON vu.user_id = s.user_id
-        INNER JOIN users u ON u.id = s.user_id
-        WHERE s.expires_at > NOW()
-        ORDER BY s.user_id, s.created_at DESC
       )
-      SELECT *
-      FROM latest_story_per_user
-      ORDER BY created_at DESC
+      SELECT
+        s.id,
+        s.user_id,
+        s.media_url,
+        s.media_type,
+        s.caption,
+        s.created_at,
+        s.expires_at,
+        u.username,
+        u.full_name,
+        u.avatar_url
+      FROM stories s
+      INNER JOIN visible_users vu ON vu.user_id = s.user_id
+      INNER JOIN users u ON u.id = s.user_id
+      WHERE s.expires_at > NOW()
+      ORDER BY s.created_at ASC
       LIMIT $2
       `,
       [req.userId, limit]

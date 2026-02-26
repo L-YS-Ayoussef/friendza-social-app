@@ -15,6 +15,7 @@ import {
 } from '@fortawesome/free-regular-svg-icons';
 import style from './style';
 import { horizontalScale, scaleFontSize } from '../../assets/styles/scaling';
+import PostMedia from '../PostMedia/PostMedia';
 
 const UserPost = (props) => {
   const postImageSource =
@@ -26,24 +27,27 @@ const UserPost = (props) => {
     <View style={style.userPostContainer}>
       <View style={style.user}>
         <View style={style.userContainer}>
-          <UserProfileImage
-            profileImage={props.profileImage}
-            imageDimensions={horizontalScale(48)}
-          />
+          <TouchableOpacity onPress={props.onPressAvatar}>
+            <UserProfileImage profileImage={props.profileImage} imageDimensions={horizontalScale(48)} />
+          </TouchableOpacity>
 
           <View style={style.userTextContainer}>
-            <Text style={style.username}>
-              {props.firstName} {props.lastName}
-            </Text>
-            {props.location ? <Text style={style.location}>{props.location}</Text> : null}
+            <TouchableOpacity onPress={props.onPressUsername} style={style.userNameContainer}>
+              <Text style={style.userNameText}>{props.firstName} {props.lastName}</Text>
+              {!!props.location && <Text style={style.locationText}>{props.location}</Text>}
+            </TouchableOpacity>
           </View>
         </View>
 
         <FontAwesomeIcon icon={faEllipsisH} size={scaleFontSize(20)} color={'#79869F'} />
       </View>
 
-      <View style={style.postImage}>
-        <Image source={postImageSource} style={style.postImageSource} resizeMode="cover" />
+      <View style={style.mediaContainer}>
+        <PostMedia
+          mediaType={props.mediaType}
+          mediaUrl={props.mediaUrl}
+          imageStyle={style.postImage}
+        />
       </View>
 
       <View style={style.userPostStats}>
@@ -80,6 +84,10 @@ UserPost.propTypes = {
   onToggleLike: PropTypes.func,
   onToggleSave: PropTypes.func,
   onOpenComments: PropTypes.func,
+  onPressUsername: PropTypes.func,
+  onPressAvatar: PropTypes.func,
+  mediaType: PropTypes.string,
+  mediaUrl: PropTypes.string,
 };
 
 UserPost.defaultProps = {

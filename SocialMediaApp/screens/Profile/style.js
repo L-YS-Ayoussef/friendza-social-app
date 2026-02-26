@@ -3,13 +3,6 @@ import { horizontalScale, scaleFontSize, verticalScale } from '../../assets/styl
 import { getFontFamily } from '../../assets/fonts/helper';
 
 const style = StyleSheet.create({
-  topRightActionRow: {
-    marginTop: verticalScale(8),
-    marginHorizontal: horizontalScale(16),
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
   iconButton: {
     width: horizontalScale(34),
     height: horizontalScale(34),
@@ -97,6 +90,13 @@ const style = StyleSheet.create({
   },
   statBorder: {
     borderRightWidth: 1,
+  },
+  topHeaderRow: {
+    marginTop: 8,
+    marginHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
 

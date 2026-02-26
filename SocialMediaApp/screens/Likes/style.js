@@ -49,6 +49,27 @@ const style = StyleSheet.create({
     color: '#94A3B8',
     fontFamily: getFontFamily('Inter', '400'),
   },
+  likeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+
+  likeAvatarWrap: {
+    marginRight: 10,
+  },
+
+  likeText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
+
+  likeName: {
+    color: '#111827',
+    fontWeight: '700',
+  },
 });
 
 export default style;

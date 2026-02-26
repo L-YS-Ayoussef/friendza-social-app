@@ -96,4 +96,32 @@ ALTER TABLE stories
 ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '24 hours');
 
 ALTER TABLE users
-ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE;
+ADD COLUMN IF NOT EXISTS is_private BOOLEAN DEFAULT FALSE;\
+
+-- Posts media support
+ALTER TABLE posts
+ADD COLUMN IF NOT EXISTS media_type VARCHAR(10) DEFAULT 'image' CHECK (media_type IN ('image', 'video'));
+
+ALTER TABLE posts
+ADD COLUMN IF NOT EXISTS media_url TEXT;
+
+ALTER TABLE posts
+ADD COLUMN IF NOT EXISTS media_duration_seconds INT;
+
+-- If you previously used image_url, copy old values once
+UPDATE posts
+SET media_url = image_url
+WHERE media_url IS NULL AND image_url IS NOT NULL;
+
+ALTER TABLE stories
+ADD COLUMN IF NOT EXISTS media_type VARCHAR(10) DEFAULT 'image' CHECK (media_type IN ('image', 'video'));
+
+ALTER TABLE stories
+ADD COLUMN IF NOT EXISTS media_url TEXT;
+
+ALTER TABLE stories
+ADD COLUMN IF NOT EXISTS media_duration_seconds INT;
+
+UPDATE stories
+SET media_url = image_url
+WHERE media_url IS NULL AND image_url IS NOT NULL;

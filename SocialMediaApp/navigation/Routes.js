@@ -16,4 +16,7 @@ export const Routes = {
   StoryViewer: 'StoryViewer',
   UserProfile: 'UserProfile',
   PostComments: 'PostComments',
+
+  PostViewer: 'PostViewer',
+  FollowList: 'FollowList',
 };

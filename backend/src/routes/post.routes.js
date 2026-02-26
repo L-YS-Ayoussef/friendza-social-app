@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -9,68 +11,56 @@ const mapPost = (row) => ({
   id: row.id,
   userId: row.user_id,
   caption: row.caption,
+  mediaUrl: row.media_url,
+  mediaType: row.media_type,
   location: row.location,
-  imageUrl: row.image_url,
   createdAt: row.created_at,
   user: {
     id: row.user_id,
     username: row.username,
     fullName: row.full_name,
     avatarUrl: row.avatar_url,
+    hasActiveStory: row.author_has_active_story,
   },
   likesCount: Number(row.likes_count || 0),
   commentsCount: Number(row.comments_count || 0),
-  bookmarksCount: Number(row.saves_count || 0),
+  savesCount: Number(row.saves_count || 0),
   isLiked: Boolean(row.is_liked),
   isSaved: Boolean(row.is_saved),
 });
 
-// POST /api/posts (multipart/form-data)
-// fields: image(file), caption(text), location(text optional)
-router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
+// POST /api/posts
+router.post('/', authMiddleware, upload.single('media'), async (req, res) => {
   try {
-    const { caption, location } = req.body;
+    const { caption = '', location = '' } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required' });
+      return res.status(400).json({ message: 'Media file is required' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+    const mediaUrl = `/uploads/${req.file.filename}`;
 
-    const insertResult = await pool.query(
+    const result = await pool.query(
       `
-      INSERT INTO posts (user_id, caption, image_url, location)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, user_id, caption, location, image_url, created_at
+      INSERT INTO posts (user_id, caption, media_url, media_type, location)
+      VALUES ($1, $2, $3, $4, NULLIF($5, ''))
+      RETURNING id, user_id, caption, media_url, media_type, location, created_at
       `,
-      [
-        req.userId,
-        caption?.trim() || null,
-        imageUrl,
-        location?.trim() || null,
-      ]
+      [req.userId, caption, mediaUrl, mediaType, location]
     );
-
-    const userResult = await pool.query(
-      `SELECT id, username, full_name, avatar_url FROM users WHERE id = $1 LIMIT 1`,
-      [req.userId]
-    );
-
-    const postRow = {
-      ...insertResult.rows[0],
-      ...userResult.rows[0],
-      likes_count: 0,
-      comments_count: 0,
-      saves_count: 0,
-      is_liked: false,
-      is_saved: false,
-    };
 
     return res.status(201).json({
-      message: 'post created successfully',
-      post: mapPost(postRow),
+      message: 'Post created successfully',
+      post: result.rows[0],
     });
   } catch (error) {
+    if (req.file?.filename) {
+      const filePath = path.join(__dirname, '../../uploads', req.file.filename);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
+    }
     console.error('Create post error:', error);
     return res.status(500).json({ message: 'server error while creating post' });
   }
@@ -93,12 +83,19 @@ router.get('/feed', authMiddleware, async (req, res) => {
         p.id,
         p.user_id,
         p.caption,
+        p.media_url,
+        p.media_type,
         p.location,
-        p.image_url,
         p.created_at,
         u.username,
         u.full_name,
         u.avatar_url,
+
+        EXISTS(
+          SELECT 1 FROM stories s
+          WHERE s.user_id = p.user_id
+            AND s.expires_at > NOW()
+        ) AS author_has_active_story,
 
         COALESCE(pl.likes_count, 0) AS likes_count,
         COALESCE(pc.comments_count, 0) AS comments_count,
@@ -113,26 +110,26 @@ router.get('/feed', authMiddleware, async (req, res) => {
 
       LEFT JOIN (
         SELECT post_id, COUNT(*)::INT AS likes_count
-        FROM post_likes
+        FROM likes
         GROUP BY post_id
       ) pl ON pl.post_id = p.id
 
       LEFT JOIN (
         SELECT post_id, COUNT(*)::INT AS comments_count
-        FROM post_comments
+        FROM comments
         GROUP BY post_id
       ) pc ON pc.post_id = p.id
 
       LEFT JOIN (
         SELECT post_id, COUNT(*)::INT AS saves_count
-        FROM post_saves
+        FROM saved_posts
         GROUP BY post_id
       ) ps ON ps.post_id = p.id
 
-      LEFT JOIN post_likes my_like
+      LEFT JOIN likes my_like
         ON my_like.post_id = p.id AND my_like.user_id = $1
 
-      LEFT JOIN post_saves my_save
+      LEFT JOIN saved_posts my_save
         ON my_save.post_id = p.id AND my_save.user_id = $1
 
       ORDER BY p.created_at DESC
@@ -164,8 +161,9 @@ router.get('/recent-likes', authMiddleware, async (req, res) => {
         liker.avatar_url AS liker_avatar_url,
         p.id AS post_id,
         p.caption AS post_caption,
-        p.image_url AS post_image_url
-      FROM post_likes pl
+        p.media_url AS post_media_url,
+        p.media_type AS post_media_type
+      FROM likes pl
       INNER JOIN posts p ON p.id = pl.post_id
       INNER JOIN users liker ON liker.id = pl.user_id
       WHERE p.user_id = $1
@@ -187,7 +185,8 @@ router.get('/recent-likes', authMiddleware, async (req, res) => {
       post: {
         id: row.post_id,
         caption: row.post_caption,
-        imageUrl: row.post_image_url,
+        mediaUrl: row.post_media_url,
+        mediaType: row.post_media_type,
       },
     }));
 
@@ -205,7 +204,7 @@ router.post('/:postId/like', authMiddleware, async (req, res) => {
 
     const inserted = await pool.query(
       `
-      INSERT INTO post_likes (post_id, user_id)
+      INSERT INTO likes (post_id, user_id)
       VALUES ($1, $2)
       ON CONFLICT (post_id, user_id) DO NOTHING
       RETURNING post_id
@@ -217,14 +216,14 @@ router.post('/:postId/like', authMiddleware, async (req, res) => {
 
     if (inserted.rows.length === 0) {
       await pool.query(
-        `DELETE FROM post_likes WHERE post_id = $1 AND user_id = $2`,
+        `DELETE FROM likes WHERE post_id = $1 AND user_id = $2`,
         [postId, req.userId]
       );
       isLiked = false;
     }
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::INT AS likes_count FROM post_likes WHERE post_id = $1`,
+      `SELECT COUNT(*)::INT AS likes_count FROM likes WHERE post_id = $1`,
       [postId]
     );
 
@@ -245,7 +244,7 @@ router.post('/:postId/save', authMiddleware, async (req, res) => {
 
     const inserted = await pool.query(
       `
-      INSERT INTO post_saves (post_id, user_id)
+      INSERT INTO saved_posts (post_id, user_id)
       VALUES ($1, $2)
       ON CONFLICT (post_id, user_id) DO NOTHING
       RETURNING post_id
@@ -257,14 +256,14 @@ router.post('/:postId/save', authMiddleware, async (req, res) => {
 
     if (inserted.rows.length === 0) {
       await pool.query(
-        `DELETE FROM post_saves WHERE post_id = $1 AND user_id = $2`,
+        `DELETE FROM saved_posts WHERE post_id = $1 AND user_id = $2`,
         [postId, req.userId]
       );
       isSaved = false;
     }
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::INT AS saves_count FROM post_saves WHERE post_id = $1`,
+      `SELECT COUNT(*)::INT AS saves_count FROM saved_posts WHERE post_id = $1`,
       [postId]
     );
 
@@ -287,13 +286,13 @@ router.get('/:postId/comments', authMiddleware, async (req, res) => {
       `
       SELECT
         c.id,
-        c.comment_text,
+        c.text,
         c.created_at,
         u.id AS user_id,
         u.username,
         u.full_name,
         u.avatar_url
-      FROM post_comments c
+      FROM comments c
       INNER JOIN users u ON u.id = c.user_id
       WHERE c.post_id = $1
       ORDER BY c.created_at ASC
@@ -304,7 +303,7 @@ router.get('/:postId/comments', authMiddleware, async (req, res) => {
     return res.status(200).json({
       comments: result.rows.map((row) => ({
         id: row.id,
-        text: row.comment_text,
+        text: row.text,
         createdAt: row.created_at,
         user: {
           id: row.user_id,
@@ -332,14 +331,14 @@ router.post('/:postId/comments', authMiddleware, async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO post_comments (post_id, user_id, comment_text)
+      INSERT INTO comments (post_id, user_id, text)
       VALUES ($1, $2, $3)
       `,
       [postId, req.userId, text.trim()]
     );
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::INT AS comments_count FROM post_comments WHERE post_id = $1`,
+      `SELECT COUNT(*)::INT AS comments_count FROM comments WHERE post_id = $1`,
       [postId]
     );
 
@@ -350,6 +349,107 @@ router.post('/:postId/comments', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Add comment error:', error);
     return res.status(500).json({ message: 'server error while adding comment' });
+  }
+});
+
+// GET /api/posts/me?mediaType=image|video
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const { mediaType } = req.query;
+    const values = [req.userId];
+    let mediaFilterSql = '';
+
+    if (mediaType === 'image' || mediaType === 'video') {
+      values.push(mediaType);
+      mediaFilterSql = `AND p.media_type = $2`;
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        p.id, p.user_id, p.caption, p.media_url, p.media_type, p.location, p.created_at,
+        u.username, u.full_name, u.avatar_url,
+        (SELECT COUNT(*)::INT FROM likes l WHERE l.post_id = p.id) AS likes_count,
+        (SELECT COUNT(*)::INT FROM comments c WHERE c.post_id = p.id) AS comments_count,
+        EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.user_id = $1) AS is_liked,
+        EXISTS(SELECT 1 FROM saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = $1) AS is_saved
+      FROM posts p
+      JOIN users u ON u.id = p.user_id
+      WHERE p.user_id = $1
+      ${mediaFilterSql}
+      ORDER BY p.created_at DESC
+      `,
+      values
+    );
+
+    return res.status(200).json({ posts: result.rows });
+  } catch (error) {
+    console.error('My posts error:', error);
+    return res.status(500).json({ message: 'server error while fetching my posts' });
+  }
+});
+
+// GET /api/posts/saved
+router.get('/saved', authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        p.id, p.user_id, p.caption, p.media_url, p.media_type, p.location, p.created_at,
+        u.username, u.full_name, u.avatar_url,
+        (SELECT COUNT(*)::INT FROM likes l WHERE l.post_id = p.id) AS likes_count,
+        (SELECT COUNT(*)::INT FROM comments c WHERE c.post_id = p.id) AS comments_count,
+        EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.user_id = $1) AS is_liked,
+        TRUE AS is_saved
+      FROM saved_posts sp
+      JOIN posts p ON p.id = sp.post_id
+      JOIN users u ON u.id = p.user_id
+      WHERE sp.user_id = $1
+      ORDER BY sp.created_at DESC
+      `,
+      [req.userId]
+    );
+
+    return res.status(200).json({ posts: result.rows });
+  } catch (error) {
+    console.error('Saved posts error:', error);
+    return res.status(500).json({ message: 'server error while fetching saved posts' });
+  }
+});
+
+// GET /api/posts/:postId
+router.get('/:postId', authMiddleware, async (req, res) => {
+  try {
+    const postId = Number(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'invalid post id' });
+
+    const result = await pool.query(
+      `
+      SELECT
+        p.id, p.user_id, p.caption, p.media_url, p.media_type, p.location, p.created_at,
+        u.username, u.full_name, u.avatar_url,
+        EXISTS(
+          SELECT 1 FROM stories s
+          WHERE s.user_id = p.user_id AND s.expires_at > NOW()
+        ) AS author_has_active_story,
+        (SELECT COUNT(*)::INT FROM likes l WHERE l.post_id = p.id) AS likes_count,
+        (SELECT COUNT(*)::INT FROM comments c WHERE c.post_id = p.id) AS comments_count,
+        EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.user_id = $1) AS is_liked,
+        EXISTS(SELECT 1 FROM saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = $1) AS is_saved
+      FROM posts p
+      JOIN users u ON u.id = p.user_id
+      WHERE p.id = $2
+      LIMIT 1
+      `,
+      [req.userId, postId]
+    );
+
+    if (!result.rows.length) return res.status(404).json({ message: 'post not found' });
+
+    return res.status(200).json({ post: result.rows[0] });
+  } catch (error) {
+    console.error('Post details error:', error);
+    return res.status(500).json({ message: 'server error while fetching post' });
   }
 });
 

@@ -49,18 +49,6 @@ const style = StyleSheet.create({
     gap: horizontalScale(10),
     marginBottom: verticalScale(14),
   },
-  mediaActionButton: {
-    flex: 1,
-    borderRadius: 10,
-    paddingVertical: verticalScale(11),
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-  },
-  mediaActionButtonText: {
-    color: '#0150EC',
-    fontFamily: getFontFamily('Inter', '600'),
-    fontSize: scaleFontSize(13),
-  },
   previewBox: {
     width: '100%',
     height: verticalScale(220),
@@ -95,6 +83,23 @@ const style = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(15),
+  },
+  sourceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+
+  sourceIconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
 });
 

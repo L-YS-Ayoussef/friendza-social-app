@@ -2,9 +2,10 @@ import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import api, { resolveMediaUrl } from '../../services/api';
+import { Routes } from '../../navigation/Routes';
 import style from './style';
 
-const UserProfile = ({ route }) => {
+const UserProfile = ({ route, navigation }) => {
   const { userId } = route.params || {};
 
   const [user, setUser] = useState(null);
@@ -99,15 +100,21 @@ const UserProfile = ({ route }) => {
             <Text style={style.statLabel}>Posts</Text>
           </View>
           <View style={style.divider} />
-          <View style={style.statItem}>
+          <TouchableOpacity
+            style={style.statItem}
+            onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'followers' })}
+          >
             <Text style={style.statValue}>{user.followersCount}</Text>
             <Text style={style.statLabel}>Followers</Text>
-          </View>
+          </TouchableOpacity>
           <View style={style.divider} />
-          <View style={style.statItem}>
+          <TouchableOpacity
+            style={style.statItem}
+            onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'following' })}
+          >
             <Text style={style.statValue}>{user.followingCount}</Text>
             <Text style={style.statLabel}>Following</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       )}
 

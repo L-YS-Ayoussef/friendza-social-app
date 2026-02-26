@@ -278,4 +278,88 @@ router.post('/:userId/follow', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/users/:userId/followers
+router.get('/:userId/followers', authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.params.userId);
+    if (!userId) return res.status(400).json({ message: 'invalid user id' });
+
+    const result = await pool.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        u.full_name,
+        u.avatar_url,
+        EXISTS (
+          SELECT 1
+          FROM follows f2
+          WHERE f2.follower_id = $2
+            AND f2.following_id = u.id
+        ) AS is_following
+      FROM follows f
+      INNER JOIN users u ON u.id = f.follower_id
+      WHERE f.following_id = $1
+      ORDER BY f.created_at DESC NULLS LAST, u.id DESC
+      `,
+      [userId, req.userId]
+    );
+
+    return res.status(200).json({
+      users: result.rows.map((row) => ({
+        id: row.id,
+        username: row.username,
+        fullName: row.full_name,
+        avatarUrl: row.avatar_url,
+        isFollowing: !!row.is_following,
+      })),
+    });
+  } catch (error) {
+    console.error('Followers list error:', error);
+    return res.status(500).json({ message: 'server error while fetching followers' });
+  }
+});
+
+// GET /api/users/:userId/following
+router.get('/:userId/following', authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.params.userId);
+    if (!userId) return res.status(400).json({ message: 'invalid user id' });
+
+    const result = await pool.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        u.full_name,
+        u.avatar_url,
+        EXISTS (
+          SELECT 1
+          FROM follows f2
+          WHERE f2.follower_id = $2
+            AND f2.following_id = u.id
+        ) AS is_following
+      FROM follows f
+      INNER JOIN users u ON u.id = f.following_id
+      WHERE f.follower_id = $1
+      ORDER BY f.created_at DESC NULLS LAST, u.id DESC
+      `,
+      [userId, req.userId]
+    );
+
+    return res.status(200).json({
+      users: result.rows.map((row) => ({
+        id: row.id,
+        username: row.username,
+        fullName: row.full_name,
+        avatarUrl: row.avatar_url,
+        isFollowing: !!row.is_following,
+      })),
+    });
+  } catch (error) {
+    console.error('Following list error:', error);
+    return res.status(500).json({ message: 'server error while fetching following' });
+  }
+});
+
 module.exports = router;

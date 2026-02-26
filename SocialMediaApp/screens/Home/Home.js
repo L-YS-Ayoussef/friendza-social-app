@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo  } from 'react';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   TouchableOpacity,
@@ -50,33 +50,48 @@ const Home = ({ navigation }) => {
         return {
           id: item.id,
           firstName: names.firstName,
-          profileImage: resolveMediaUrl(item.imageUrl),
-          storyImage: resolveMediaUrl(item.imageUrl),
+          // ✅ FIX: avatar is inside item.user
+          profileImage: resolveMediaUrl(item.user?.avatarUrl),
+          mediaType: item.mediaType || item.media_type || 'image',
+          storyImage: resolveMediaUrl(item.mediaUrl || item.media_url),
+          userId: item.user?.id || item.userId,
           caption: item.caption || '',
           username: item.user?.username || '',
           fullName: item.user?.fullName || '',
         };
       });
 
+      // ✅ FIX: use postsResponse, not feedResponse
       const postsData = (postsResponse.data?.posts || []).map((item) => {
         const names = splitName(item.user?.fullName, item.user?.username);
+
         return {
           id: item.id,
+          userId: item.userId || item.user?.id,
           firstName: names.firstName,
           lastName: names.lastName,
-          location: item.location || null,
+          mediaUrl: resolveMediaUrl(item.mediaUrl || item.media_url),
+          mediaType: item.mediaType || item.media_type || 'image',
+          profileImage: resolveMediaUrl(item.user?.avatarUrl),
+          location: item.location || '',
           likes: item.likesCount || 0,
           comments: item.commentsCount || 0,
-          bookmarks: item.bookmarksCount || 0,
-          isLiked: item.isLiked || false,
-          isSaved: item.isSaved || false,
-          image: resolveMediaUrl(item.imageUrl) || require('../../assets/images/default_post.png'),
-          profileImage: resolveMediaUrl(item.user?.avatarUrl) || require('../../assets/images/default_profile.png'),
+
+          // ✅ backend mapPost currently returns bookmarksCount (not savesCount)
+          bookmarks: item.bookmarksCount ?? item.savesCount ?? 0,
+
+          isLiked: !!item.isLiked,
+          isSaved: !!item.isSaved,
+          username: item.user?.username || '',
         };
       });
 
       setStories(storiesData);
       setPosts(postsData);
+
+      // optional debug
+      console.log('Stories count:', storiesData.length);
+      console.log('Posts count:', postsData.length);
     } catch (error) {
       console.log('Home feed load error:', error?.response?.data || error.message);
     } finally {
@@ -84,6 +99,32 @@ const Home = ({ navigation }) => {
       setIsRefreshing(false);
     }
   };
+
+  const storyByUserId = useMemo(() => {
+    const map = {};
+    stories.forEach((s, index) => {
+      if (!map[s.userId]) {
+        map[s.userId] = { story: s, index };
+      }
+    });
+    return map;
+  }, [stories]);
+
+  const storyCircles = useMemo(() => {
+    const seen = new Set();
+    const circles = [];
+
+    // reverse so the circle uses the latest story thumbnail/name
+    for (let i = stories.length - 1; i >= 0; i--) {
+      const s = stories[i];
+      if (!seen.has(s.userId)) {
+        seen.add(s.userId);
+        circles.unshift(s); // keep original visual order
+      }
+    }
+
+    return circles;
+  }, [stories]);
 
   useFocusEffect(
     useCallback(() => {
@@ -157,8 +198,8 @@ const Home = ({ navigation }) => {
                 <FlatList
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  data={stories}
-                  keyExtractor={(item) => String(item.id)}
+                  data={storyCircles}
+                  keyExtractor={(item) => String(item.userId)}
                   ListHeaderComponent={
                     <TouchableOpacity style={style.addStoryContainer} onPress={() => navigation.navigate(Routes.CreateStory)}>
                       <View style={style.addStoryCircle}>
@@ -174,12 +215,14 @@ const Home = ({ navigation }) => {
                     <UserStory
                       firstName={item.firstName}
                       profileImage={item.profileImage}
-                      onPress={() =>
+                      onPress={() => {
+                        const firstStoryIndex = storyByUserId[item.userId]?.index ?? 0;
+
                         navigation.navigate(Routes.StoryViewer, {
-                          stories, 
-                          startIndex: index,
-                        })
-                      }
+                          stories, // full stories array (all stories)
+                          startIndex: firstStoryIndex, // start from this user's first story
+                        });
+                      }}
                     />
                   )}
                 />
@@ -199,7 +242,6 @@ const Home = ({ navigation }) => {
               <UserPost
                 firstName={item.firstName}
                 lastName={item.lastName}
-                image={item.image}
                 likes={item.likes}
                 comments={item.comments}
                 bookmarks={item.bookmarks}
@@ -207,6 +249,20 @@ const Home = ({ navigation }) => {
                 location={item.location}
                 isLiked={item.isLiked}
                 isSaved={item.isSaved}
+                mediaType={item.mediaType}
+                mediaUrl={item.mediaUrl}
+                onPressUsername={() => navigation.navigate(Routes.UserProfile, { userId: item.userId })}
+                onPressAvatar={() => {
+                  const storyMatch = storyByUserId[item.userId];
+                  if (storyMatch) {
+                    navigation.navigate(Routes.StoryViewer, {
+                      stories,
+                      startIndex: storyMatch.index,
+                    });
+                  } else {
+                    navigation.navigate(Routes.UserProfile, { userId: item.userId });
+                  }
+                }}
                 onToggleLike={() => toggleLike(item.id)}
                 onToggleSave={() => toggleSave(item.id)}
                 onOpenComments={() => navigation.navigate(Routes.PostComments, { postId: item.id })}

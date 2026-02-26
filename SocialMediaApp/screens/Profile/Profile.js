@@ -39,6 +39,15 @@ const Profile = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAvatarActions, setShowAvatarActions] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  
+  const openFollowList = (type) => {
+    if (!profile?.id) return;
+
+    navigation.navigate(Routes.FollowList, {
+      userId: profile.id,
+      type, // 'followers' | 'following'
+    });
+  };
 
   const loadProfile = async () => {
     try {
@@ -199,21 +208,32 @@ const Profile = ({ navigation }) => {
         edges={['top', 'right', 'left', 'bottom']}
         style={[globalStyle.flex, { backgroundColor: colors.background }]}
       >
-        <ScrollView contentContainerStyle={globalStyle.flexGrow}>
-          <View style={style.topRightActionRow}>
+        <View  style={{ flex: 1 }}>
+          <View style={style.topHeaderRow}>
+            {/* Left: Create Post */}
             <TouchableOpacity
-              onPress={() => navigation.navigate(Routes.Settings)}
+              onPress={() => navigation.navigate(Routes.CreatePost)}
               style={[style.iconButton, { backgroundColor: colors.card }]}
             >
-              <FontAwesomeIcon icon={faGear} size={18} color={colors.text} />
+              <FontAwesomeIcon icon={faPlus} size={18} color={colors.text} />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={signOut}
-              style={[style.iconButton, { backgroundColor: colors.card, marginLeft: 8 }]}
-            >
-              <FontAwesomeIcon icon={faSignOutAlt} size={18} color={colors.text} />
-            </TouchableOpacity>
+            {/* Right: Settings + Logout */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(Routes.Settings)}
+                style={[style.iconButton, { backgroundColor: colors.card }]}
+              >
+                <FontAwesomeIcon icon={faGear} size={18} color={colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={signOut}
+                style={[style.iconButton, { backgroundColor: colors.card, marginLeft: 8 }]}
+              >
+                <FontAwesomeIcon icon={faSignOutAlt} size={18} color={colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={style.profileImageContainer}>
@@ -262,16 +282,20 @@ const Profile = ({ navigation }) => {
           {!!profile?.bio && <Text style={[style.bioText, { color: colors.subText }]}>{profile.bio}</Text>}
 
           <View style={[style.statContainer, { borderColor: colors.border }]}>
-            <View>
-              <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followingCount || 0}</Text>
-              <Text style={[style.statType, { color: colors.subText }]}>Following</Text>
-            </View>
+            <TouchableOpacity onPress={() => openFollowList('following')}>
+              <View>
+                <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followingCount || 0}</Text>
+                <Text style={[style.statType, { color: colors.subText }]}>Following</Text>
+              </View>
+            </TouchableOpacity>
             <View style={[style.statBorder, { borderColor: colors.border }]} />
 
-            <View>
-              <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followersCount || 0}</Text>
-              <Text style={[style.statType, { color: colors.subText }]}>Followers</Text>
-            </View>
+            <TouchableOpacity onPress={() => openFollowList('followers')}>
+              <View>
+                <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followersCount || 0}</Text>
+                <Text style={[style.statType, { color: colors.subText }]}>Followers</Text>
+              </View>
+            </TouchableOpacity>
             <View style={[style.statBorder, { borderColor: colors.border }]} />
 
             <View>
@@ -283,7 +307,7 @@ const Profile = ({ navigation }) => {
           <View style={globalStyle.flex}>
             <ProfileTabsNavigation />
           </View>
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
