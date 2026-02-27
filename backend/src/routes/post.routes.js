@@ -14,7 +14,7 @@ const mapPost = (row) => ({
   mediaUrl: row.media_url,
   mediaType: row.media_type,
   location: row.location,
-  createdAt: row.created_at,
+  createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
   user: {
     id: row.user_id,
     username: row.username,
@@ -194,6 +194,79 @@ router.get('/recent-likes', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Recent likes error:', error);
     return res.status(500).json({ message: 'server error while fetching recent likes' });
+  }
+});
+
+// GET /api/posts/:postId/likes
+router.get('/:postId/likes', authMiddleware, async (req, res) => {
+  try {
+    const postId = Number(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'invalid post id' });
+
+    // --- gate check: ensure post exists + enforce privacy (private account)
+    const gate = await pool.query(
+      `
+      SELECT
+        p.user_id AS author_id,
+        u.is_private,
+        EXISTS(
+          SELECT 1 FROM follows f
+          WHERE f.follower_id = $1 AND f.following_id = p.user_id
+        ) AS is_following_author
+      FROM posts p
+      JOIN users u ON u.id = p.user_id
+      WHERE p.id = $2
+      LIMIT 1
+      `,
+      [req.userId, postId]
+    );
+
+    if (!gate.rows.length) return res.status(404).json({ message: 'post not found' });
+
+    const { author_id, is_private, is_following_author } = gate.rows[0];
+    const isOwner = Number(author_id) === Number(req.userId);
+    const isPrivateLocked = is_private && !is_following_author && !isOwner;
+
+    if (isPrivateLocked) return res.status(403).json({ message: 'private account' });
+
+    const requestedLimit = Number(req.query.limit) || 100;
+    const limit = Math.min(Math.max(requestedLimit, 1), 200);
+
+    // --- fetch users who liked the post
+    const result = await pool.query(
+      `
+      SELECT
+        l.created_at,
+        u.id,
+        u.username,
+        u.full_name,
+        u.avatar_url,
+        EXISTS(
+          SELECT 1 FROM follows f
+          WHERE f.follower_id = $1 AND f.following_id = u.id
+        ) AS is_following
+      FROM likes l
+      JOIN users u ON u.id = l.user_id
+      WHERE l.post_id = $2
+      ORDER BY l.created_at DESC
+      LIMIT $3
+      `,
+      [req.userId, postId, limit]
+    );
+
+    return res.status(200).json({
+      users: result.rows.map((row) => ({
+        id: row.id,
+        username: row.username,
+        fullName: row.full_name,
+        avatarUrl: row.avatar_url,
+        likedAt: row.created_at,
+        isFollowing: row.is_following,
+      })),
+    });
+  } catch (error) {
+    console.error('Post likes list error:', error);
+    return res.status(500).json({ message: 'server error while fetching likes' });
   }
 });
 

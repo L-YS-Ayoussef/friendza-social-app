@@ -47,9 +47,11 @@ const PostViewer = ({ route, navigation }) => {
           bookmarks={post.saves_count || post.savesCount || post.bookmarksCount || 0}
           isLiked={!!(post.is_liked || post.isLiked)}
           isSaved={!!(post.is_saved || post.isSaved)}
+          createdAt={post.createdAt || post.created_at}
           onPressUsername={() => navigation.navigate(Routes.UserProfile, { userId })}
           onPressAvatar={() => navigation.navigate(Routes.UserProfile, { userId })}
           onOpenComments={() => navigation.navigate(Routes.PostComments, { postId })}
+          onOpenLikes={() => navigation.navigate(Routes.PostLikes, { postId })}
         />
       </View>
     </SafeAreaView>

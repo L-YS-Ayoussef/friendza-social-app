@@ -53,6 +53,11 @@ const style = StyleSheet.create({
   userPostStatButton: { flexDirection: 'row' },
   userPostStatButtonRight: { flexDirection: 'row', marginLeft: horizontalScale(27) },
   userPostStatText: { marginLeft: horizontalScale(3), color: '#79869F', marginTop: -2 },
+  postMetaText: {
+    marginTop: 2,
+    fontSize: 12,
+    color: '#64748B',
+  },
 });
 
 export default style;

@@ -159,7 +159,7 @@ router.get('/suggestions', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/users/:userId/profile
+// ✅ UPDATED: GET /api/users/:userId/profile (adds followsMe)
 router.get('/:userId/profile', authMiddleware, async (req, res) => {
   try {
     const userId = Number(req.params.userId);
@@ -186,7 +186,12 @@ router.get('/:userId/profile', authMiddleware, async (req, res) => {
         EXISTS(
           SELECT 1 FROM follows
           WHERE follower_id = $1 AND following_id = u.id
-        ) AS is_following
+        ) AS is_following,
+
+        EXISTS(
+          SELECT 1 FROM follows
+          WHERE follower_id = u.id AND following_id = $1
+        ) AS follows_me
       FROM users u
       WHERE u.id = $2
       LIMIT 1
@@ -214,6 +219,7 @@ router.get('/:userId/profile', authMiddleware, async (req, res) => {
         followingCount: row.following_count,
         postsCount: isPrivateLocked ? null : row.posts_count,
         isFollowing: row.is_following,
+        followsMe: row.follows_me,
         isOwnProfile,
         isPrivate: row.is_private,
         isPrivateLocked,
@@ -222,6 +228,98 @@ router.get('/:userId/profile', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('User profile error:', error);
     return res.status(500).json({ message: 'server error while fetching profile' });
+  }
+});
+
+// ✅ NEW: GET /api/users/:userId/posts
+router.get('/:userId/posts', authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.params.userId);
+    if (!userId) return res.status(400).json({ message: 'invalid user id' });
+
+    const gate = await pool.query(
+      `
+      SELECT
+        u.is_private,
+        EXISTS(
+          SELECT 1 FROM follows
+          WHERE follower_id = $1 AND following_id = u.id
+        ) AS is_following
+      FROM users u
+      WHERE u.id = $2
+      LIMIT 1
+      `,
+      [req.userId, userId]
+    );
+
+    if (!gate.rows.length) return res.status(404).json({ message: 'user not found' });
+
+    const isOwnProfile = userId === req.userId;
+    const isPrivateLocked = gate.rows[0].is_private && !gate.rows[0].is_following && !isOwnProfile;
+    if (isPrivateLocked) return res.status(403).json({ message: 'private account' });
+
+    const requestedLimit = Number(req.query.limit) || 60;
+    const limit = Math.min(Math.max(requestedLimit, 1), 120);
+
+    const result = await pool.query(
+      `
+      SELECT
+        p.id,
+        p.user_id,
+        p.caption,
+        p.media_url,
+        p.media_type,
+        p.location,
+        p.created_at
+      FROM posts p
+      WHERE p.user_id = $1
+      ORDER BY p.created_at DESC
+      LIMIT $2
+      `,
+      [userId, limit]
+    );
+
+    return res.status(200).json({ posts: result.rows });
+  } catch (error) {
+    console.error('User posts error:', error);
+    return res.status(500).json({ message: 'server error while fetching user posts' });
+  }
+});
+
+// ✅ NEW: DELETE /api/users/:userId/follower
+router.delete('/:userId/follower', authMiddleware, async (req, res) => {
+  try {
+    const followerUserId = Number(req.params.userId);
+    if (!followerUserId) return res.status(400).json({ message: 'invalid user id' });
+    if (followerUserId === req.userId) return res.status(400).json({ message: 'invalid operation' });
+
+    const deleted = await pool.query(
+      `
+      DELETE FROM follows
+      WHERE follower_id = $1 AND following_id = $2
+      RETURNING follower_id
+      `,
+      [followerUserId, req.userId]
+    );
+
+    const counts = await pool.query(
+      `
+      SELECT
+        (SELECT COUNT(*)::INT FROM follows WHERE following_id = $1) AS followers_count,
+        (SELECT COUNT(*)::INT FROM follows WHERE follower_id = $1) AS following_count
+      `,
+      [followerUserId]
+    );
+
+    return res.status(200).json({
+      removed: deleted.rows.length > 0,
+      targetUserId: followerUserId,
+      followersCount: counts.rows[0].followers_count,
+      followingCount: counts.rows[0].following_count,
+    });
+  } catch (error) {
+    console.error('Delete follower error:', error);
+    return res.status(500).json({ message: 'server error while deleting follower' });
   }
 });
 

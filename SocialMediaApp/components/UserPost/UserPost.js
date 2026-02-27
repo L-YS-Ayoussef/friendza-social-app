@@ -17,11 +17,30 @@ import style from './style';
 import { horizontalScale, scaleFontSize } from '../../assets/styles/scaling';
 import PostMedia from '../PostMedia/PostMedia';
 
+const formatRelativePostTime = (value) => {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const week = 7 * day;
+
+  if (diffMs < minute) return 'Just now';
+  if (diffMs < hour) return `${Math.floor(diffMs / minute)}m`;
+  if (diffMs < day) return `${Math.floor(diffMs / hour)}h`;
+  if (diffMs < week) return `${Math.floor(diffMs / day)}d`;
+
+  // local timezone display
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
 const UserPost = (props) => {
-  const postImageSource =
-    typeof props.image === 'string' && props.image.trim()
-      ? { uri: props.image }
-      : props.image || require('../../assets/images/default_post.png');
 
   return (
     <View style={style.userPostContainer}>
@@ -33,9 +52,12 @@ const UserPost = (props) => {
 
           <View style={style.userTextContainer}>
             <TouchableOpacity onPress={props.onPressUsername} style={style.userNameContainer}>
-              <Text style={style.userNameText}>{props.firstName} {props.lastName}</Text>
-              {!!props.location && <Text style={style.locationText}>{props.location}</Text>}
+              <Text style={style.username}>{props.firstName} {props.lastName}</Text>
             </TouchableOpacity>
+            <Text style={style.postMetaText}>
+              {!!props.location && <Text style={style.location}>{props.location}</Text>}
+              {formatRelativePostTime(props.createdAt)}
+            </Text>
           </View>
         </View>
 
@@ -51,10 +73,22 @@ const UserPost = (props) => {
       </View>
 
       <View style={style.userPostStats}>
-        <TouchableOpacity style={style.userPostStatButton} onPress={props.onToggleLike}>
-          <FontAwesomeIcon icon={props.isLiked ? faHeartSolid : faHeartRegular} color={props.isLiked ? '#EF4444' : '#79869F'} />
-          <Text style={style.userPostStatText}>{props.likes}</Text>
-        </TouchableOpacity>
+        <View style={style.userPostStatButton}>
+          <TouchableOpacity onPress={props.onToggleLike} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <FontAwesomeIcon
+              icon={props.isLiked ? faHeartSolid : faHeartRegular}
+              color={props.isLiked ? '#EF4444' : '#79869F'}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={props.onOpenLikes}
+            disabled={!props.onOpenLikes}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={style.userPostStatText}>{props.likes}</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={style.userPostStatButtonRight} onPress={props.onOpenComments}>
           <FontAwesomeIcon icon={faMessage} color={'#79869F'} />
@@ -62,7 +96,10 @@ const UserPost = (props) => {
         </TouchableOpacity>
 
         <TouchableOpacity style={style.userPostStatButtonRight} onPress={props.onToggleSave}>
-          <FontAwesomeIcon icon={props.isSaved ? faBookmarkSolid : faBookmarkRegular} color={props.isSaved ? '#111827' : '#79869F'} />
+          <FontAwesomeIcon
+            icon={props.isSaved ? faBookmarkSolid : faBookmarkRegular}
+            color={props.isSaved ? '#111827' : '#79869F'}
+          />
           <Text style={style.userPostStatText}>{props.bookmarks}</Text>
         </TouchableOpacity>
       </View>
@@ -88,6 +125,7 @@ UserPost.propTypes = {
   onPressAvatar: PropTypes.func,
   mediaType: PropTypes.string,
   mediaUrl: PropTypes.string,
+  onOpenLikes: PropTypes.func,
 };
 
 UserPost.defaultProps = {
@@ -100,6 +138,7 @@ UserPost.defaultProps = {
   onToggleLike: () => {},
   onToggleSave: () => {},
   onOpenComments: () => {},
+  onOpenLikes: undefined,
 };
 
 export default UserPost;

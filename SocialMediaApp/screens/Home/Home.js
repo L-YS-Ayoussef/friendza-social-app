@@ -50,7 +50,6 @@ const Home = ({ navigation }) => {
         return {
           id: item.id,
           firstName: names.firstName,
-          // ✅ FIX: avatar is inside item.user
           profileImage: resolveMediaUrl(item.user?.avatarUrl),
           mediaType: item.mediaType || item.media_type || 'image',
           storyImage: resolveMediaUrl(item.mediaUrl || item.media_url),
@@ -58,10 +57,10 @@ const Home = ({ navigation }) => {
           caption: item.caption || '',
           username: item.user?.username || '',
           fullName: item.user?.fullName || '',
+          createdAt: item.createdAt || item.created_at,
         };
       });
 
-      // ✅ FIX: use postsResponse, not feedResponse
       const postsData = (postsResponse.data?.posts || []).map((item) => {
         const names = splitName(item.user?.fullName, item.user?.username);
 
@@ -77,12 +76,12 @@ const Home = ({ navigation }) => {
           likes: item.likesCount || 0,
           comments: item.commentsCount || 0,
 
-          // ✅ backend mapPost currently returns bookmarksCount (not savesCount)
           bookmarks: item.bookmarksCount ?? item.savesCount ?? 0,
 
           isLiked: !!item.isLiked,
           isSaved: !!item.isSaved,
           username: item.user?.username || '',
+          createdAt: item.createdAt || item.created_at,
         };
       });
 
@@ -251,6 +250,7 @@ const Home = ({ navigation }) => {
                 isSaved={item.isSaved}
                 mediaType={item.mediaType}
                 mediaUrl={item.mediaUrl}
+                createdAt={item.createdAt}
                 onPressUsername={() => navigation.navigate(Routes.UserProfile, { userId: item.userId })}
                 onPressAvatar={() => {
                   const storyMatch = storyByUserId[item.userId];
@@ -266,6 +266,7 @@ const Home = ({ navigation }) => {
                 onToggleLike={() => toggleLike(item.id)}
                 onToggleSave={() => toggleSave(item.id)}
                 onOpenComments={() => navigation.navigate(Routes.PostComments, { postId: item.id })}
+                onOpenLikes={() => navigation.navigate(Routes.PostLikes, { postId: item.id })}
               />
             </View>
           )}

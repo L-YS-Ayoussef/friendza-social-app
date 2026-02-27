@@ -1,6 +1,9 @@
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View, Image } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Text, TouchableOpacity, View, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import Video from 'react-native-video';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faPlus, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import api, { resolveMediaUrl } from '../../services/api';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
@@ -10,13 +13,34 @@ const UserProfile = ({ route, navigation }) => {
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const loadPosts = async (targetUserId) => {
+    try {
+      setIsPostsLoading(true);
+      const response = await api.get(`/users/${targetUserId}/posts`);
+      setPosts(response.data?.posts || []);
+    } catch (error) {
+      setPosts([]);
+    } finally {
+      setIsPostsLoading(false);
+    }
+  };
 
   const loadProfile = async () => {
     try {
       setIsLoading(true);
       const response = await api.get(`/users/${userId}/profile`);
-      setUser(response.data?.user || null);
+      const u = response.data?.user || null;
+      setUser(u);
+
+      if (u && !u.isPrivateLocked) {
+        await loadPosts(u.id);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       Alert.alert('Error', error?.response?.data?.message || 'Failed to load profile');
     } finally {
@@ -35,20 +59,52 @@ const UserProfile = ({ route, navigation }) => {
 
     try {
       setIsSubmitting(true);
-      const response = await api.post(`/users/${user.id}/follow`);
-
-      setUser((prev) => ({
-        ...prev,
-        isFollowing: response.data.isFollowing,
-        followersCount: response.data.followersCount,
-        followingCount: response.data.followingCount,
-      }));
+      await api.post(`/users/${user.id}/follow`);
+      await loadProfile(); // refresh unlock + stats + posts
     } catch (error) {
       Alert.alert('Error', error?.response?.data?.message || 'Failed to update follow');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const onDeleteFollower = async () => {
+    if (!user) return;
+
+    Alert.alert(
+      'Delete follower',
+      `Remove @${user.username} from your followers?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsSubmitting(true);
+              const response = await api.delete(`/users/${user.id}/follower`);
+              setUser((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  followsMe: false,
+                  followingCount: response.data?.followingCount ?? prev.followingCount,
+                };
+              });
+            } catch (error) {
+              Alert.alert('Error', error?.response?.data?.message || 'Failed to delete follower');
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const showDeleteFollower = useMemo(() => {
+    return !!user?.followsMe && !user?.isOwnProfile;
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -66,8 +122,8 @@ const UserProfile = ({ route, navigation }) => {
     );
   }
 
-  return (
-    <ScrollView style={style.container} contentContainerStyle={{ paddingBottom: 20 }}>
+  const renderHeader = () => (
+    <View style={style.header}>
       <View style={style.avatarWrap}>
         <Image
           source={
@@ -83,16 +139,14 @@ const UserProfile = ({ route, navigation }) => {
       <Text style={style.username}>@{user.username}</Text>
 
       {!!user.bio && <Text style={style.bio}>{user.bio}</Text>}
-      
+
       {user.isPrivateLocked && (
         <View style={style.privateNotice}>
           <Text style={style.privateNoticeTitle}>Private Account</Text>
-          <Text style={style.privateNoticeText}>
-            Follow this user to view their profile details.
-          </Text>
+          <Text style={style.privateNoticeText}>Follow this user to view their profile details.</Text>
         </View>
       )}
-      
+
       {!user.isPrivateLocked && (
         <View style={style.statsRow}>
           <View style={style.statItem}>
@@ -119,17 +173,83 @@ const UserProfile = ({ route, navigation }) => {
       )}
 
       {!user.isOwnProfile && (
-        <TouchableOpacity
-          style={[style.followButton, user.isFollowing && style.followingButton]}
-          onPress={onToggleFollow}
-          disabled={isSubmitting}
-        >
-          <Text style={[style.followButtonText, user.isFollowing && style.followingButtonText]}>
-            {user.isFollowing ? 'Unfollow' : 'Follow'}
-          </Text>
-        </TouchableOpacity>
+        <View style={style.actionsRow}>
+          <TouchableOpacity
+            style={[style.actionButton, user.isFollowing ? style.actionButtonSecondary : style.actionButtonPrimary]}
+            onPress={onToggleFollow}
+            disabled={isSubmitting}
+          >
+            <FontAwesomeIcon
+              icon={user.isFollowing ? faTimes : faPlus}
+              size={14}
+              color={user.isFollowing ? '#0150EC' : '#FFFFFF'}
+            />
+            <Text
+              style={[
+                style.actionButtonText,
+                user.isFollowing ? style.actionButtonTextSecondary : style.actionButtonTextPrimary,
+              ]}
+            >
+              {user.isFollowing ? 'Unfollow' : 'Follow'}
+            </Text>
+          </TouchableOpacity>
+
+          {showDeleteFollower && (
+            <TouchableOpacity
+              style={[style.actionButton, style.actionButtonDanger]}
+              onPress={onDeleteFollower}
+              disabled={isSubmitting}
+            >
+              <FontAwesomeIcon icon={faTrash} size={14} color="#FFFFFF" />
+              <Text style={[style.actionButtonText, style.actionButtonTextPrimary]}>Delete follower</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
-    </ScrollView>
+
+      {!user.isPrivateLocked && isPostsLoading && (
+        <View style={style.postsLoading}>
+          <ActivityIndicator />
+        </View>
+      )}
+    </View>
+  );
+
+  const renderItem = ({ item }) => {
+    const mediaUrl = resolveMediaUrl(item.media_url || item.mediaUrl);
+    const mediaType = item.media_type || item.mediaType || 'image';
+
+    return (
+      <TouchableOpacity
+        style={style.cell}
+        onPress={() => navigation.navigate(Routes.PostViewer, { postId: item.id })}
+      >
+        {mediaType === 'video' ? (
+          <Video source={{ uri: mediaUrl }} style={style.thumb} resizeMode="cover" paused />
+        ) : (
+          <Image source={{ uri: mediaUrl }} style={style.thumb} />
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <FlatList
+      style={style.container}
+      data={user.isPrivateLocked ? [] : posts}
+      numColumns={3}
+      keyExtractor={(item) => String(item.id)}
+      renderItem={renderItem}
+      ListHeaderComponent={renderHeader}
+      contentContainerStyle={style.listContent}
+      ListEmptyComponent={
+        user.isPrivateLocked || isPostsLoading ? null : (
+          <View style={style.emptyWrap}>
+            <Text style={style.emptyText}>No posts yet</Text>
+          </View>
+        )
+      }
+    />
   );
 };
 

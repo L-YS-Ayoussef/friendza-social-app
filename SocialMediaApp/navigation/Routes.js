@@ -19,4 +19,5 @@ export const Routes = {
 
   PostViewer: 'PostViewer',
   FollowList: 'FollowList',
+  PostLikes: 'PostLikes',
 };

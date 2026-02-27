@@ -17,6 +17,16 @@ import style from './style';
 
 const STORY_DURATION = 5000;
 
+const formatStoryCreationTime = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
+
 const StoryViewer = ({ route, navigation }) => {
   const { stories = [], startIndex = 0 } = route.params || {};
   const { autoPlayStories } = useAppPreferences();
@@ -129,9 +139,13 @@ const StoryViewer = ({ route, navigation }) => {
                 }
                 style={style.headerAvatar}
               />
-              <Text style={style.headerName}>{currentStory.firstName}</Text>
+              <View>
+                <Text style={style.headerName}>{currentStory.firstName}</Text>
+                <Text style={style.headerTimeText}>
+                  {formatStoryCreationTime(currentStory.createdAt)}
+                </Text>
+              </View>
             </View>
-
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <FontAwesomeIcon icon={faTimes} size={20} color="#FFFFFF" />
             </TouchableOpacity>

@@ -13,8 +13,8 @@ const mapStory = (row) => ({
   caption: row.caption,
   mediaUrl: row.media_url,
   mediaType: row.media_type,
-  createdAt: row.created_at,
-  expiresAt: row.expires_at,
+  createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+  expiresAt: row.expires_at ? new Date(row.expires_at).toISOString() : null,
   user: {
     id: row.user_id,
     username: row.username,

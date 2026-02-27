@@ -31,6 +31,7 @@ import FollowList from '../screens/FollowList/FollowList';
 import ProfilePhotosTab from '../screens/Profile/ProfilePhotosTab';
 import ProfileVideosTab from '../screens/Profile/ProfileVideosTab';
 import ProfileSavedTab from '../screens/Profile/ProfileSavedTab';
+import PostLikes from '../screens/Likes/PostLikes';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -120,6 +121,12 @@ const AppNavigation = () => (
       name={Routes.PostComments}
       component={PostComments}
       options={{ title: 'Comments' }}
+    />
+
+    <Stack.Screen
+      name={Routes.PostLikes}
+      component={PostLikes}
+      options={{ title: 'Likes' }}
     />
 
     <Stack.Screen name={Routes.PostViewer} component={PostViewer} options={{ headerShown: false }} />

@@ -64,6 +64,12 @@ const style = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  
+  headerTimeText: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 11,
+    marginTop: 1,
+  },
 
   captionContainer: {
     paddingHorizontal: 12,
