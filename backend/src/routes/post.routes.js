@@ -27,6 +27,7 @@ const mapPost = (row) => ({
   savesCount: Number(row.saves_count || 0),
   isLiked: Boolean(row.is_liked),
   isSaved: Boolean(row.is_saved),
+  isFollowingAuthor: Boolean(row.is_following_author),
 });
 
 // POST /api/posts
@@ -90,6 +91,11 @@ router.get('/feed', authMiddleware, async (req, res) => {
         u.username,
         u.full_name,
         u.avatar_url,
+
+        EXISTS(
+          SELECT 1 FROM follows f
+          WHERE f.follower_id = $1 AND f.following_id = p.user_id
+        ) AS is_following_author,
 
         EXISTS(
           SELECT 1 FROM stories s
@@ -490,6 +496,185 @@ router.get('/saved', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /api/posts/:postId (edit post - owner only - within 1 hour)
+router.put('/:postId', authMiddleware, upload.single('media'), async (req, res) => {
+  try {
+    const postId = Number(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'invalid post id' });
+
+    const found = await pool.query(
+      `
+      SELECT id, user_id, created_at, media_url
+      FROM posts
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [postId]
+    );
+
+    if (!found.rows.length) return res.status(404).json({ message: 'post not found' });
+
+    const post = found.rows[0];
+
+    if (Number(post.user_id) !== Number(req.userId)) {
+      return res.status(403).json({ message: 'only owner can edit this post' });
+    }
+
+    const createdAt = new Date(post.created_at);
+    const diffMs = Date.now() - createdAt.getTime();
+    if (diffMs > 60 * 60 * 1000) {
+      return res.status(403).json({ message: 'edit time window expired (1 hour)' });
+    }
+
+    const fields = [];
+    const values = [];
+    let i = 1;
+
+    // allow empty caption => ''
+    if (Object.prototype.hasOwnProperty.call(req.body, 'caption')) {
+      fields.push(`caption = $${i++}`);
+      values.push((req.body.caption ?? '').toString());
+    }
+
+    // allow clearing location by sending ''
+    if (Object.prototype.hasOwnProperty.call(req.body, 'location')) {
+      fields.push(`location = NULLIF($${i++}, '')`);
+      values.push((req.body.location ?? '').toString());
+    }
+
+    let oldMediaUrl = post.media_url;
+    let newMediaUrl = null;
+
+    if (req.file?.filename) {
+      const mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      newMediaUrl = `/uploads/${req.file.filename}`;
+
+      fields.push(`media_url = $${i++}`);
+      values.push(newMediaUrl);
+
+      fields.push(`media_type = $${i++}`);
+      values.push(mediaType);
+    }
+
+    if (!fields.length) {
+      return res.status(400).json({ message: 'nothing to update' });
+    }
+
+    values.push(postId);
+
+    const updated = await pool.query(
+      `
+      UPDATE posts
+      SET ${fields.join(', ')}
+      WHERE id = $${i}
+      RETURNING id, user_id, caption, media_url, media_type, location, created_at
+      `,
+      values
+    );
+
+    // If media changed, delete old file IF it’s not referenced anymore.
+    if (newMediaUrl && oldMediaUrl && oldMediaUrl.startsWith('/uploads/')) {
+      const usage = await pool.query(
+        `
+        SELECT
+          (SELECT COUNT(*)::INT FROM posts WHERE media_url = $1) AS posts_using,
+          (SELECT COUNT(*)::INT FROM stories WHERE media_url = $1) AS stories_using
+        `,
+        [oldMediaUrl]
+      );
+
+      const total = (usage.rows[0].posts_using || 0) + (usage.rows[0].stories_using || 0);
+      if (total === 0) {
+        const filePath = path.join(__dirname, '../../uploads', path.basename(oldMediaUrl));
+        if (fs.existsSync(filePath)) {
+          try { fs.unlinkSync(filePath); } catch (_) {}
+        }
+      }
+    }
+
+    return res.status(200).json({
+      message: 'post updated',
+      post: updated.rows[0],
+    });
+  } catch (error) {
+    // cleanup if upload happened but update failed
+    if (req.file?.filename) {
+      const filePath = path.join(__dirname, '../../uploads', req.file.filename);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
+    }
+
+    console.error('Edit post error:', error);
+    return res.status(500).json({ message: 'server error while editing post' });
+  }
+});
+
+// DELETE /api/posts/:postId (delete post - owner only)
+router.delete('/:postId', authMiddleware, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const postId = Number(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'invalid post id' });
+
+    await client.query('BEGIN');
+
+    const found = await client.query(
+      `SELECT id, user_id, media_url FROM posts WHERE id = $1 LIMIT 1 FOR UPDATE`,
+      [postId]
+    );
+
+    if (!found.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'post not found' });
+    }
+
+    const post = found.rows[0];
+    if (Number(post.user_id) !== Number(req.userId)) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ message: 'only owner can delete this post' });
+    }
+
+    // delete dependencies (no FK cascade assumed)
+    await client.query(`DELETE FROM likes WHERE post_id = $1`, [postId]);
+    await client.query(`DELETE FROM comments WHERE post_id = $1`, [postId]);
+    await client.query(`DELETE FROM saved_posts WHERE post_id = $1`, [postId]);
+
+    await client.query(`DELETE FROM posts WHERE id = $1`, [postId]);
+
+    await client.query('COMMIT');
+
+    // delete media file if unused by other posts/stories
+    const mediaUrl = post.media_url;
+    if (mediaUrl && mediaUrl.startsWith('/uploads/')) {
+      const usage = await pool.query(
+        `
+        SELECT
+          (SELECT COUNT(*)::INT FROM posts WHERE media_url = $1) AS posts_using,
+          (SELECT COUNT(*)::INT FROM stories WHERE media_url = $1) AS stories_using
+        `,
+        [mediaUrl]
+      );
+
+      const total = (usage.rows[0].posts_using || 0) + (usage.rows[0].stories_using || 0);
+      if (total === 0) {
+        const filePath = path.join(__dirname, '../../uploads', path.basename(mediaUrl));
+        if (fs.existsSync(filePath)) {
+          try { fs.unlinkSync(filePath); } catch (_) {}
+        }
+      }
+    }
+
+    return res.status(200).json({ message: 'post deleted', postId });
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch (_) {}
+    console.error('Delete post error:', error);
+    return res.status(500).json({ message: 'server error while deleting post' });
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/posts/:postId
 router.get('/:postId', authMiddleware, async (req, res) => {
   try {
@@ -508,7 +693,11 @@ router.get('/:postId', authMiddleware, async (req, res) => {
         (SELECT COUNT(*)::INT FROM likes l WHERE l.post_id = p.id) AS likes_count,
         (SELECT COUNT(*)::INT FROM comments c WHERE c.post_id = p.id) AS comments_count,
         EXISTS(SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.user_id = $1) AS is_liked,
-        EXISTS(SELECT 1 FROM saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = $1) AS is_saved
+        EXISTS(SELECT 1 FROM saved_posts sp WHERE sp.post_id = p.id AND sp.user_id = $1) AS is_saved,
+        EXISTS(
+          SELECT 1 FROM follows f
+          WHERE f.follower_id = $1 AND f.following_id = p.user_id
+        ) AS is_following_author
       FROM posts p
       JOIN users u ON u.id = p.user_id
       WHERE p.id = $2

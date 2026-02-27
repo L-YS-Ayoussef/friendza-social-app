@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo  } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   TouchableOpacity,
@@ -8,9 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHeart, faPlus } from '@fortawesome/free-solid-svg-icons';
+
+import PostActionsSheet from '../../components/PostActionsSheet/PostActionsSheet';
+import BottomToast from '../../components/BottomToast/BottomToast';
 
 import style from './style';
 import UserStory from '../../components/UserStory/UserStory';
@@ -24,6 +28,12 @@ const Home = ({ navigation }) => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { user: currentUser } = useAuth();
+  const toastRef = useRef(null);
+
+  const [actionsVisible, setActionsVisible] = useState(false);
+  const [activePost, setActivePost] = useState(null);
 
   const splitName = (fullName, username) => {
     const fallback = username || 'User';
@@ -82,6 +92,8 @@ const Home = ({ navigation }) => {
           isSaved: !!item.isSaved,
           username: item.user?.username || '',
           createdAt: item.createdAt || item.created_at,
+          caption: item.caption || '',
+          isFollowingAuthor: !!item.isFollowingAuthor,
         };
       });
 
@@ -150,16 +162,79 @@ const Home = ({ navigation }) => {
   };
 
   const toggleSave = async (postId) => {
-    try {
-      const response = await api.post(`/posts/${postId}/save`);
-      const { isSaved, savesCount } = response.data;
+    const response = await api.post(`/posts/${postId}/save`);
+    const { isSaved, savesCount } = response.data;
 
-      setPosts((prev) =>
-        prev.map((p) => (p.id === postId ? { ...p, isSaved, bookmarks: savesCount } : p))
-      );
-    } catch (error) {
-      console.log('Toggle save error:', error?.response?.data || error.message);
-    }
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, isSaved, bookmarks: savesCount } : p))
+    );
+
+    return isSaved;
+  };
+
+  const openActions = (post) => {
+    setActivePost(post);
+    setActionsVisible(true);
+  };
+
+  const closeActions = () => {
+    setActionsVisible(false);
+    setActivePost(null);
+  };
+
+  const isOwner = !!activePost && Number(activePost.userId) === Number(currentUser?.id);
+
+  const canEdit = useMemo(() => {
+    if (!activePost?.createdAt) return false;
+    const diff = Date.now() - new Date(activePost.createdAt).getTime();
+    return diff <= 60 * 60 * 1000; // 1 hour
+  }, [activePost]);
+
+  const onView = () => {
+    if (!activePost) return;
+    navigation.navigate(Routes.PostViewer, { postId: activePost.id });
+  };
+
+  const onEdit = () => {
+    if (!activePost) return;
+    navigation.navigate(Routes.CreatePost, {
+      mode: 'edit',
+      postId: activePost.id,
+      post: activePost,
+    });
+  };
+
+  const onDelete = async () => {
+    if (!activePost) return;
+    await api.delete(`/posts/${activePost.id}`);
+    setPosts((prev) => prev.filter((p) => p.id !== activePost.id));
+  };
+
+  const onAddToStory = async () => {
+    if (!activePost) return;
+    await api.post(`/stories/from-post/${activePost.id}`);
+  };
+
+  const onToggleFollow = async () => {
+    if (!activePost) return false;
+
+    const res = await api.post(`/users/${activePost.userId}/follow`);
+    const next = !!res.data?.isFollowing;
+
+    // update all posts by that author so sheets stay correct everywhere
+    setPosts((prev) =>
+      prev.map((p) => (p.userId === activePost.userId ? { ...p, isFollowingAuthor: next } : p))
+    );
+
+    setActivePost((prev) => (prev ? { ...prev, isFollowingAuthor: next } : prev));
+    return next;
+  };
+
+  const onToggleSaveFromSheet = async () => {
+    if (!activePost) return false;
+    const next = await toggleSave(activePost.id);
+    setActivePost((prev) => (prev ? { ...prev, isSaved: next } : prev));
+    return next;
   };
 
   if (isLoading) {
@@ -267,10 +342,30 @@ const Home = ({ navigation }) => {
                 onToggleSave={() => toggleSave(item.id)}
                 onOpenComments={() => navigation.navigate(Routes.PostComments, { postId: item.id })}
                 onOpenLikes={() => navigation.navigate(Routes.PostLikes, { postId: item.id })}
+                onOpenActions={() => openActions(item)}
               />
             </View>
           )}
         />
+
+        <PostActionsSheet
+          visible={actionsVisible}
+          onClose={closeActions}
+          post={activePost}
+          isOwner={isOwner}
+          canEdit={isOwner && canEdit}
+          isFollowingAuthor={!!activePost?.isFollowingAuthor}
+          isSaved={!!activePost?.isSaved}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onAddToStory={onAddToStory}
+          onToggleFollow={onToggleFollow}
+          onToggleSave={onToggleSaveFromSheet}
+          showToast={(msg) => toastRef.current?.show(msg)}
+        />
+
+        <BottomToast ref={toastRef} />
       </SafeAreaView>
     </SafeAreaProvider>
   );

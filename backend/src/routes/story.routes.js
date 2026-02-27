@@ -60,6 +60,72 @@ router.post('/', authMiddleware, upload.single('media'), async (req, res) => {
   }
 });
 
+// POST /api/stories/from-post/:postId  (owner only)
+router.post('/from-post/:postId', authMiddleware, async (req, res) => {
+  try {
+    const postId = Number(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'invalid post id' });
+
+    const found = await pool.query(
+      `
+      SELECT id, user_id, caption, media_url, media_type, media_duration_seconds
+      FROM posts
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [postId]
+    );
+
+    if (!found.rows.length) return res.status(404).json({ message: 'post not found' });
+
+    const post = found.rows[0];
+    if (Number(post.user_id) !== Number(req.userId)) {
+      return res.status(403).json({ message: 'only owner can add this post to story' });
+    }
+
+    // copy file so deleting post doesn't break story
+    if (!post.media_url || !post.media_url.startsWith('/uploads/')) {
+      return res.status(400).json({ message: 'post media is not stored locally' });
+    }
+
+    const srcPath = path.join(__dirname, '../../uploads', path.basename(post.media_url));
+    if (!fs.existsSync(srcPath)) {
+      return res.status(500).json({ message: 'post media file missing on server' });
+    }
+
+    const ext = path.extname(post.media_url) || (post.media_type === 'video' ? '.mp4' : '.jpg');
+    const newName = `story_${Date.now()}_${Math.random().toString(16).slice(2)}${ext}`;
+    const dstPath = path.join(__dirname, '../../uploads', newName);
+
+    fs.copyFileSync(srcPath, dstPath);
+
+    const newMediaUrl = `/uploads/${newName}`;
+
+    const result = await pool.query(
+      `
+      INSERT INTO stories (user_id, caption, media_url, media_type, media_duration_seconds, expires_at)
+      VALUES ($1, $2, $3, $4, $5, NOW() + INTERVAL '24 hours')
+      RETURNING id, user_id, caption, media_url, media_type, created_at, expires_at
+      `,
+      [
+        req.userId,
+        post.caption || '',
+        newMediaUrl,
+        post.media_type || 'image',
+        post.media_duration_seconds || null,
+      ]
+    );
+
+    return res.status(201).json({
+      message: 'added to story',
+      story: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Add to story from post error:', error);
+    return res.status(500).json({ message: 'server error while adding to story' });
+  }
+});
+
 // GET /api/stories/active
 router.get('/active', authMiddleware, async (req, res) => {
   try {

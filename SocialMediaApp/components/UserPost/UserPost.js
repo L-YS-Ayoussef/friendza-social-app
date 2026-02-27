@@ -61,7 +61,9 @@ const UserPost = (props) => {
           </View>
         </View>
 
-        <FontAwesomeIcon icon={faEllipsisH} size={scaleFontSize(20)} color={'#79869F'} />
+        <TouchableOpacity onPress={props.onOpenActions} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <FontAwesomeIcon icon={faEllipsisH} size={scaleFontSize(20)} color={'#79869F'} />
+        </TouchableOpacity>
       </View>
 
       <View style={style.mediaContainer}>
@@ -126,6 +128,7 @@ UserPost.propTypes = {
   mediaType: PropTypes.string,
   mediaUrl: PropTypes.string,
   onOpenLikes: PropTypes.func,
+  onOpenActions: PropTypes.func,
 };
 
 UserPost.defaultProps = {
@@ -139,6 +142,7 @@ UserPost.defaultProps = {
   onToggleSave: () => {},
   onOpenComments: () => {},
   onOpenLikes: undefined,
+  onOpenActions: () => {},
 };
 
 export default UserPost;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   ActivityIndicator,
@@ -12,16 +12,31 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import api from '../../services/api';
+import api, { resolveMediaUrl } from '../../services/api';
 import style from '../CreateContent/style';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
 
-const CreatePost = ({ navigation }) => {
+const CreatePost = ({ navigation, route }) => {
+  const { mode, postId, post } = route.params || {};
+  const isEdit = mode === 'edit' && !!postId;
+
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [caption, setCaption] = useState('');
   const [location, setLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [existingMediaUrl, setExistingMediaUrl] = useState(null);
+  const [existingMediaType, setExistingMediaType] = useState('image');
+
+useEffect(() => {
+  if (!isEdit || !post) return;
+
+  setCaption(post.caption || '');
+  setLocation(post.location || '');
+  setExistingMediaUrl(resolveMediaUrl(post.mediaUrl || post.media_url));
+  setExistingMediaType(post.mediaType || post.media_type || 'image');
+}, [isEdit, post]);
 
   const onPickFromGallery = async () => {
     const result = await launchImageLibrary({
@@ -58,14 +73,46 @@ const CreatePost = ({ navigation }) => {
     if (asset) setSelectedMedia(asset);
   };
 
-  const onCreatePost = async () => {
-    if (!selectedMedia?.uri) {
-      Alert.alert('Missing media', 'Please select or capture an image/video');
-      return;
-    }
-
+  const onSubmit = async () => {
     try {
       setIsSubmitting(true);
+
+      if (isEdit) {
+        // edit: allow changing caption/location only, or replace media
+        if (selectedMedia?.uri) {
+          const formData = new FormData();
+          const isVideo = selectedMedia.type?.startsWith('video/');
+          const defaultExt = isVideo ? 'mp4' : 'jpg';
+
+          formData.append('media', {
+            uri: selectedMedia.uri,
+            type: selectedMedia.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+            name: selectedMedia.fileName || `post_${Date.now()}.${defaultExt}`,
+          });
+
+          formData.append('caption', caption ?? '');
+          formData.append('location', location ?? '');
+
+          await api.put(`/posts/${postId}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          await api.put(`/posts/${postId}`, {
+            caption: caption ?? '',
+            location: location ?? '',
+          });
+        }
+
+        Alert.alert('Success', 'Post updated successfully');
+        navigation.goBack();
+        return;
+      }
+
+      // create (original logic)
+      if (!selectedMedia?.uri) {
+        Alert.alert('Missing media', 'Please select or capture an image/video');
+        return;
+      }
 
       const formData = new FormData();
       const isVideo = selectedMedia.type?.startsWith('video/');
@@ -87,7 +134,7 @@ const CreatePost = ({ navigation }) => {
       Alert.alert('Success', 'Post created successfully');
       navigation.goBack();
     } catch (error) {
-      const message = error?.response?.data?.message || 'Failed to create post';
+      const message = error?.response?.data?.message || (isEdit ? 'Failed to update post' : 'Failed to create post');
       Alert.alert('Error', message);
     } finally {
       setIsSubmitting(false);
@@ -97,7 +144,7 @@ const CreatePost = ({ navigation }) => {
   return (
     <SafeAreaView style={style.container}>
       <ScrollView contentContainerStyle={style.content} keyboardShouldPersistTaps="handled">
-        <Text style={style.title}>Create Post</Text>
+        <Text style={style.title}>{isEdit ? 'Edit Post' : 'Create Post'}</Text>
         <Text style={style.subtitle}>Upload from gallery or take a photo.</Text>
 
         <Text style={style.label}>Post image *</Text>
@@ -114,23 +161,19 @@ const CreatePost = ({ navigation }) => {
         <View style={style.previewBox}>
           {selectedMedia?.uri ? (
             selectedMedia.type?.startsWith('video/') ? (
-              <Video
-                source={{ uri: selectedMedia.uri }}
-                style={style.previewImage}
-                resizeMode="cover"
-                paused={true} // preview is static for now
-              />
+              <Video source={{ uri: selectedMedia.uri }} style={style.previewImage} resizeMode="cover" paused />
             ) : (
-              <Image
-                source={{ uri: selectedMedia.uri }}
-                style={style.previewImage}
-                resizeMode="cover"
-              />
+              <Image source={{ uri: selectedMedia.uri }} style={style.previewImage} resizeMode="cover" />
+            )
+          ) : existingMediaUrl ? (
+            existingMediaType === 'video' ? (
+              <Video source={{ uri: existingMediaUrl }} style={style.previewImage} resizeMode="cover" paused />
+            ) : (
+              <Image source={{ uri: existingMediaUrl }} style={style.previewImage} resizeMode="cover" />
             )
           ) : (
             <Text style={style.previewPlaceholder}>No image/video selected</Text>
-          )
-          }
+          )}
         </View>
 
         <Text style={style.label}>Location (optional)</Text>
@@ -153,7 +196,7 @@ const CreatePost = ({ navigation }) => {
         />
 
         <TouchableOpacity
-          onPress={onCreatePost}
+          onPress={onSubmit}
           style={[style.button, isSubmitting && style.buttonDisabled]}
           disabled={isSubmitting}
         >
