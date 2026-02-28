@@ -13,6 +13,7 @@ import PostActionsSheet from '../../components/PostActionsSheet/PostActionsSheet
 import BottomToast from '../../components/BottomToast/BottomToast';
 import style from './style';
 import { horizontalScale } from '../../assets/styles/scaling';
+import useT from '../../i18n/useT';
 
 const PostViewer = ({ route, navigation }) => {
   const { postId } = route.params || {};
@@ -26,6 +27,8 @@ const PostViewer = ({ route, navigation }) => {
 
   const [actionsVisible, setActionsVisible] = useState(false);
 
+  const { t } = useT();
+  
   const loadAll = async () => {
     setLoadingPost(true);
     setLoadingComments(true);
@@ -84,7 +87,7 @@ const PostViewer = ({ route, navigation }) => {
   if (!post) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <Text>Post not found</Text>
+        <Text>{t('post.postNotFound')}</Text>
       </SafeAreaView>
     );
   }
@@ -168,7 +171,7 @@ const PostViewer = ({ route, navigation }) => {
         onOpenActions={() => setActionsVisible(true)}
       />
 
-      <Text style={style.sectionTitle}>Comments</Text>
+      <Text style={style.sectionTitle}>{t('post.commentsTitle')}</Text>
       {loadingComments ? <ActivityIndicator /> : null}
     </View>
   );
@@ -192,7 +195,7 @@ const PostViewer = ({ route, navigation }) => {
           </View>
         )}
         ListEmptyComponent={
-          loadingComments ? null : <Text style={style.emptyText}>No Comments</Text>
+          loadingComments ? null : <Text style={style.emptyText}>{t('post.noComments')}</Text>
         }
       />
 

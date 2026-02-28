@@ -4,12 +4,15 @@ import api, { resolveMediaUrl } from '../../services/api';
 import UserProfileImage from '../../components/UserProfileImage/UserProfileImage';
 import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
+import useT from '../../i18n/useT';
 
 const FollowList = ({ route, navigation }) => {
   const { userId, type } = route.params || {}; // type: 'followers' | 'following'
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { t } = useT();
+  
   useEffect(() => {
     const load = async () => {
       try {
@@ -27,7 +30,7 @@ const FollowList = ({ route, navigation }) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: type === 'followers' ? 'Followers' : 'Following',
+      title: type === 'followers' ? t('follow.followers') : t('follow.following'),
     });
   }, [navigation, type]);
 
@@ -38,7 +41,7 @@ const FollowList = ({ route, navigation }) => {
       data={users}
       keyExtractor={(item) => String(item.id)}
       contentContainerStyle={{ padding: 12 }}
-      ListEmptyComponent={<Text>No users</Text>}
+      ListEmptyComponent={<Text>{t('post.noUsers')}</Text>}
       renderItem={({ item }) => (
         <TouchableOpacity
           onPress={() => navigation.navigate(Routes.UserProfile, { userId: item.id })}

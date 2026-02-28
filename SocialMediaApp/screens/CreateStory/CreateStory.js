@@ -16,12 +16,17 @@ import api from '../../services/api';
 import style from '../CreateContent/style';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
+import useT from '../../i18n/useT';
 
 const CreateStory = ({ navigation }) => {
   const [selectedMedia, setSelectedImage] = useState(null);
   const [caption, setCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { t, isRTL } = useT();
+  const rtlText = { textAlign: isRTL ? 'right' : 'left' };
+  const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
+    
   const onPickFromGallery = async () => {
     const result = await launchImageLibrary({
       mediaType: 'mixed',
@@ -31,7 +36,7 @@ const CreateStory = ({ navigation }) => {
 
     if (result.didCancel) return;
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open gallery');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openGalleryFailed'));
       return;
     }
 
@@ -49,7 +54,7 @@ const CreateStory = ({ navigation }) => {
 
     if (result.didCancel) return;
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open camera');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openCameraFailed'));
       return;
     }
 
@@ -59,7 +64,7 @@ const CreateStory = ({ navigation }) => {
 
   const onCreateStory = async () => {
     if (!selectedMedia?.uri) {
-      Alert.alert('Missing media', 'Please select or capture an image/video');
+      Alert.alert(t('auth.missingDataTitle'), t('post.missingMedia'));
       return;
     }
 
@@ -82,11 +87,11 @@ const CreateStory = ({ navigation }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert('Success', 'Story created successfully');
+      Alert.alert(t('common.success'), t('post.addedToStory')); 
       navigation.goBack();
     } catch (error) {
-      const message = error?.response?.data?.message || 'Failed to create story';
-      Alert.alert('Error', message);
+      const message = error?.response?.data?.message || t('post.failedCreateStory');
+      Alert.alert(t('common.error'), message);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,10 +100,10 @@ const CreateStory = ({ navigation }) => {
   return (
     <SafeAreaView style={style.container}>
       <ScrollView contentContainerStyle={style.content} keyboardShouldPersistTaps="handled">
-        <Text style={style.title}>Create Story</Text>
-        <Text style={style.subtitle}>Stories disappear after 24 hours.</Text>
+        <Text style={style.title}>{t('post.createStoryTitle')}</Text>
+        <Text style={style.subtitle}>{t('post.createStorySubtitle')}</Text>
 
-        <Text style={style.label}>Story image *</Text>
+        <Text style={style.label}>{t('post.storyMediaLabel')}</Text>
         <View style={style.sourceRow}>
           <TouchableOpacity style={style.sourceIconButton} onPress={onOpenCamera}>
             <FontAwesomeIcon icon={faCamera} size={18} color="#111827" />
@@ -126,15 +131,15 @@ const CreateStory = ({ navigation }) => {
               />
             )
           ) : (
-            <Text style={style.previewPlaceholder}>No image/video selected</Text>
+            <Text style={style.previewPlaceholder}>{t('post.noMediaSelected')}</Text>
           )
           }
         </View>
 
-        <Text style={style.label}>Caption (optional)</Text>
+        <Text style={style.label}>{t('post.captionOptional')}</Text>
         <TextInput
           style={[style.input, style.textArea]}
-          placeholder="Story caption..."
+          placeholder={t('post.writeSomething')}
           placeholderTextColor="#94A3B8"
           multiline
           value={caption}
@@ -146,7 +151,7 @@ const CreateStory = ({ navigation }) => {
           style={[style.button, isSubmitting && style.buttonDisabled]}
           disabled={isSubmitting}
         >
-          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>Publish Story</Text>}
+          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>{t('post.publishStory')}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

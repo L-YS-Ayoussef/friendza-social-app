@@ -4,6 +4,7 @@ import { useThemeMode } from '../../context/ThemeContext';
 import { useAppPreferences } from '../../context/AppPreferencesContext';
 import api from '../../services/api';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const Settings = () => {
   const { mode, colors, toggleTheme } = useThemeMode();
@@ -12,7 +13,8 @@ const Settings = () => {
   const [isPrivateAccount, setIsPrivateAccount] = useState(false);
   const [isLoadingPrivacy, setIsLoadingPrivacy] = useState(true);
   const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
-
+  const { t } = useT();
+  
   useEffect(() => {
     const loadPrivacy = async () => {
       try {
@@ -56,13 +58,13 @@ const Settings = () => {
 
   return (
     <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
-      <Text style={[style.title, { color: colors.text }]}>Settings</Text>
+      <Text style={[style.title, { color: colors.text }]}>{t('settings.title')}</Text>
 
       {/* Dark Mode */}
       <View style={[style.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={style.textWrap}>
-          <Text style={[style.rowTitle, { color: colors.text }]}>Dark Mode</Text>
-          <Text style={[style.rowSub, { color: colors.subText }]}>Switch between light and dark theme</Text>
+          <Text style={[style.rowTitle, { color: colors.text }]}>{t('settings.darkMode')}</Text>
+          <Text style={[style.rowSub, { color: colors.subText }]}>{t('settings.themeHint')}</Text>
         </View>
         <Switch value={mode === 'dark'} onValueChange={toggleTheme} />
       </View>
@@ -70,9 +72,9 @@ const Settings = () => {
       {/* Auto-play stories */}
       <View style={[style.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={style.textWrap}>
-          <Text style={[style.rowTitle, { color: colors.text }]}>Auto-play Stories</Text>
+          <Text style={[style.rowTitle, { color: colors.text }]}>{t('settings.autoPlayStories')}</Text>
           <Text style={[style.rowSub, { color: colors.subText }]}>
-            When ON, stories show progress bars and move automatically
+            {t('settings.autoPlayHint')}
           </Text>
         </View>
         <Switch value={autoPlayStories} onValueChange={updateAutoPlayStories} />
@@ -80,8 +82,8 @@ const Settings = () => {
 
       {/* Language (UI only for now) */}
       <View style={[style.cardColumn, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[style.rowTitle, { color: colors.text }]}>Language</Text>
-        <Text style={[style.rowSub, { color: colors.subText }]}>UI only for now (implementation later)</Text>
+        <Text style={[style.rowTitle, { color: colors.text }]}>{t('settings.language')}</Text>
+        <Text style={[style.rowSub, { color: colors.subText }]}>{t('settings.languageHint')}</Text>
 
         <View style={style.langRow}>
           <TouchableOpacity
@@ -94,7 +96,7 @@ const Settings = () => {
             ]}
             onPress={() => updateLanguage('en')}
           >
-            <Text style={{ color: language === 'en' ? colors.primary : colors.text }}>English</Text>
+            <Text style={{ color: language === 'en' ? colors.primary : colors.text }}>{t('settings.english')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -107,7 +109,7 @@ const Settings = () => {
             ]}
             onPress={() => updateLanguage('ar')}
           >
-            <Text style={{ color: language === 'ar' ? colors.primary : colors.text }}>Arabic</Text>
+            <Text style={{ color: language === 'ar' ? colors.primary : colors.text }}>{t('settings.arabic')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -115,9 +117,9 @@ const Settings = () => {
       {/* Privacy */}
       <View style={[style.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={style.textWrap}>
-          <Text style={[style.rowTitle, { color: colors.text }]}>Private Account</Text>
+          <Text style={[style.rowTitle, { color: colors.text }]}>{t('settings.privacy')}</Text>
           <Text style={[style.rowSub, { color: colors.subText }]}>
-            Others must follow you before viewing your profile details
+            {t('settings.privacyHint')}
           </Text>
         </View>
 

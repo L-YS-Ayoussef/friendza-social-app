@@ -6,14 +6,17 @@ import UserProfileImage from '../../components/UserProfileImage/UserProfileImage
 import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const PostLikes = ({ route, navigation }) => {
   const { postId } = route.params || {};
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const { t } = useT();
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: 'Likes' });
+    navigation.setOptions({ title: t('nav.likes') });
   }, [navigation]);
 
   useEffect(() => {
@@ -46,7 +49,7 @@ const PostLikes = ({ route, navigation }) => {
       <FlatList
         data={users}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={style.emptyText}>No likes yet</Text>}
+        ListEmptyComponent={<Text style={style.emptyText}>{t('likes.noLikes')}</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={style.likeRow}

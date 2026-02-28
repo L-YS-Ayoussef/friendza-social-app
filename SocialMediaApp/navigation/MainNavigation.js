@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
@@ -33,11 +33,15 @@ import ProfileVideosTab from '../screens/Profile/ProfileVideosTab';
 import ProfileSavedTab from '../screens/Profile/ProfileSavedTab';
 import PostLikes from '../screens/Likes/PostLikes';
 
+import useT from '../i18n/useT';
+
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const ProfileTabs = createMaterialTopTabNavigator();
 
 export const ProfileTabsNavigation = () => {
+  const { t } = useT();
+
   return (
     <ProfileTabs.Navigator
       screenOptions={{
@@ -47,34 +51,69 @@ export const ProfileTabsNavigation = () => {
     >
       <ProfileTabs.Screen
         name="Photos"
-        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Photos" /> }}
+        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title={t('profile.photos')} /> }}
         component={ProfilePhotosTab}
       />
       <ProfileTabs.Screen
         name="Videos"
-        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Videos" /> }}
+        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title={t('profile.videos')} /> }}
         component={ProfileVideosTab}
       />
       <ProfileTabs.Screen
         name="Saved"
-        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title="Saved" /> }}
+        options={{ tabBarLabel: ({ focused }) => <ProfileTabTitle isFocused={focused} title={t('profile.saved')} /> }}
         component={ProfileSavedTab}
       />
     </ProfileTabs.Navigator>
   );
 };
 
-const DrawerRoot = () => (
-  <Drawer.Navigator
-    initialRouteName={Routes.Home}
-    drawerContent={(props) => <CustomDrawerContent {...props} />}
-  >
-    <Drawer.Screen name={Routes.Home} component={Home} />
-    <Drawer.Screen name={Routes.Suggestions} component={Suggestions} options={{ title: 'Find Friends' }} />
-    <Drawer.Screen name={Routes.Settings} component={Settings} />
-    <Drawer.Screen name={Routes.Profile} component={Profile} />
-  </Drawer.Navigator>
-);
+const DrawerRoot = () => {
+  const { t } = useT();
+
+  return (
+    <Drawer.Navigator
+      initialRouteName={Routes.Home}
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+    >
+      <Drawer.Screen
+        name={Routes.Home}
+        component={Home}
+        options={{
+          title: t('nav.home'),
+          drawerLabel: t('nav.home'),
+        }}
+      />
+
+      <Drawer.Screen
+        name={Routes.Suggestions}
+        component={Suggestions}
+        options={{
+          title: t('nav.suggestions'),
+          drawerLabel: t('nav.suggestions'),
+        }}
+      />
+
+      <Drawer.Screen
+        name={Routes.Settings}
+        component={Settings}
+        options={{
+          title: t('nav.settings'),
+          drawerLabel: t('nav.settings'),
+        }}
+      />
+
+      <Drawer.Screen
+        name={Routes.Profile}
+        component={Profile}
+        options={{
+          title: t('nav.profile'),
+          drawerLabel: t('nav.profile'),
+        }}
+      />
+    </Drawer.Navigator>
+  );
+};
 
 const AuthNavigation = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -83,56 +122,28 @@ const AuthNavigation = () => (
   </Stack.Navigator>
 );
 
-const AppNavigation = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.DrawerRoot}
-      component={DrawerRoot}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.CreatePost}
-      component={CreatePost}
-      options={{ title: 'Create Post' }}
-    />
-    <Stack.Screen
-      name={Routes.CreateStory}
-      component={CreateStory}
-      options={{ title: 'Create Story' }}
-    />
-    <Stack.Screen
-      name={Routes.RecentLikes}
-      component={RecentLikes}
-      options={{ title: 'Recent Likes' }}
-    />
-    <Stack.Screen
-      name={Routes.StoryViewer}
-      component={StoryViewer}
-      options={{ headerShown: false }}
-    />
+const AppNavigation = () => {
+  const { t } = useT();
 
-    <Stack.Screen
-      name={Routes.UserProfile}
-      component={UserProfile}
-      options={{ title: 'Profile' }}
-    />
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name={Routes.DrawerRoot} component={DrawerRoot} options={{ headerShown: false }} />
 
-    <Stack.Screen
-      name={Routes.PostComments}
-      component={PostComments}
-      options={{ title: 'Comments' }}
-    />
+      <Stack.Screen name={Routes.CreatePost} component={CreatePost} options={{ title: t('nav.createPost') }} />
+      <Stack.Screen name={Routes.CreateStory} component={CreateStory} options={{ title: t('nav.createStory') }} />
+      <Stack.Screen name={Routes.RecentLikes} component={RecentLikes} options={{ title: t('likes.recentLikes') }} />
 
-    <Stack.Screen
-      name={Routes.PostLikes}
-      component={PostLikes}
-      options={{ title: 'Likes' }}
-    />
+      <Stack.Screen name={Routes.StoryViewer} component={StoryViewer} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.UserProfile} component={UserProfile} options={{ title: t('nav.profile') }} />
 
-    <Stack.Screen name={Routes.PostViewer} component={PostViewer} options={{ headerShown: false }} />
-    <Stack.Screen name={Routes.FollowList} component={FollowList} options={{ title: 'People' }} />
-  </Stack.Navigator>
-);
+      <Stack.Screen name={Routes.PostComments} component={PostComments} options={{ title: t('nav.comments') }} />
+      <Stack.Screen name={Routes.PostLikes} component={PostLikes} options={{ title: t('nav.likes') }} />
+
+      <Stack.Screen name={Routes.PostViewer} component={PostViewer} options={{ headerShown: false }} />
+      <Stack.Screen name={Routes.FollowList} component={FollowList} options={{ title: t('nav.followList') }} />
+    </Stack.Navigator>
+  );
+};
 
 const MainNavigation = () => {
   const { token, isBootstrapping } = useAuth();

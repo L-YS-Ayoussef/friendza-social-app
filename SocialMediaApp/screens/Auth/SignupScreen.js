@@ -11,6 +11,7 @@ import {
 import { Routes } from '../../navigation/Routes';
 import { useAuth } from '../../context/AuthContext';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const SignupScreen = ({ navigation }) => {
   const { signUp } = useAuth();
@@ -21,9 +22,14 @@ const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { t, isRTL } = useT();
+  const rtlText = { textAlign: isRTL ? 'right' : 'left' };
+  const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
+  const rtlPasswordInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: 'ltr' };
+
   const onSignup = async () => {
     if (!username.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Missing data', 'Username, email and password are required');
+      Alert.alert(t('auth.missingDataTitle'), t('auth.missingSignupDataBody'));
       return;
     }
 
@@ -36,7 +42,7 @@ const SignupScreen = ({ navigation }) => {
         password,
       });
     } catch (error) {
-      Alert.alert('Signup failed', error.message);
+      Alert.alert(t('auth.signupFailedTitle'), error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -44,20 +50,20 @@ const SignupScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={style.container}>
-      <Text style={style.title}>Create Account</Text>
-      <Text style={style.subtitle}>Let’s get you started 🚀</Text>
+      <Text style={[style.title]}>{t('auth.signUp')}</Text>
+      <Text style={[style.subtitle]}>{t('auth.getStarted')}</Text>
 
       <TextInput
-        style={style.input}
-        placeholder="Full name (optional)"
+        style={[style.input, rtlInput]}
+        placeholder={t('auth.fullName')}
         value={fullName}
         onChangeText={setFullName}
         placeholderTextColor="#94A3B8"
       />
 
       <TextInput
-        style={style.input}
-        placeholder="Username"
+        style={[style.input, rtlInput]}
+        placeholder={t('auth.username')}
         autoCapitalize="none"
         value={username}
         onChangeText={setUsername}
@@ -65,8 +71,8 @@ const SignupScreen = ({ navigation }) => {
       />
 
       <TextInput
-        style={style.input}
-        placeholder="Email"
+        style={[style.input, rtlInput]}
+        placeholder={t('auth.email')}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -75,8 +81,8 @@ const SignupScreen = ({ navigation }) => {
       />
 
       <TextInput
-        style={style.input}
-        placeholder="Password (min 6 chars)"
+        style={[style.input, rtlPasswordInput]}
+        placeholder={t('auth.password')}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -91,14 +97,14 @@ const SignupScreen = ({ navigation }) => {
         {isSubmitting ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text style={style.buttonText}>Sign up</Text>
+          <Text style={style.buttonText}>{t('auth.signup')}</Text>
         )}
       </TouchableOpacity>
 
       <View style={style.footerRow}>
-        <Text style={style.footerText}>Already have an account? </Text>
+        <Text style={style.footerText}>{t('auth.haveAccount')}   </Text>
         <TouchableOpacity onPress={() => navigation.navigate(Routes.Login)}>
-          <Text style={style.footerLink}>Login</Text>
+          <Text style={style.footerLink}>{t('auth.login')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

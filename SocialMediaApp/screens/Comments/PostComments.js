@@ -16,6 +16,7 @@ import UserProfileImage from '../../components/UserProfileImage/UserProfileImage
 import { horizontalScale } from '../../assets/styles/scaling';
 import { useThemeMode } from '../../context/ThemeContext';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const PostComments = ({ route }) => {
   const { postId } = route.params || {};
@@ -26,6 +27,9 @@ const PostComments = ({ route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
 
+  const { t, isRTL } = useT();
+  const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
+  
   const loadComments = async () => {
     try {
       setIsLoading(true);
@@ -75,7 +79,7 @@ const PostComments = ({ route }) => {
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={style.listContent}
             ListEmptyComponent={
-              <Text style={[style.emptyText, { color: colors.subText }]}>No comments yet</Text>
+              <Text style={[style.emptyText, { color: colors.subText }]}>{t('post.noComments')}</Text>
             }
             renderItem={({ item }) => (
               <View style={[style.commentRow, { borderBottomColor: colors.border }]}>
@@ -98,8 +102,9 @@ const PostComments = ({ route }) => {
               style={[
                 style.input,
                 { color: colors.text, borderColor: colors.border, backgroundColor: colors.card },
+                rtlInput,
               ]}
-              placeholder="Write a comment..."
+              placeholder={t('post.writeCommentPlaceholder')}
               placeholderTextColor={colors.subText}
               value={commentText}
               onChangeText={setCommentText}
@@ -109,7 +114,7 @@ const PostComments = ({ route }) => {
               style={[style.sendButton, { backgroundColor: colors.primary }, isSending && { opacity: 0.6 }]}
               disabled={isSending}
             >
-              <Text style={style.sendButtonText}>{isSending ? '...' : 'Send'}</Text>
+              <Text style={style.sendButtonText}>{isSending ? '...' : t('common.send')}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

@@ -7,6 +7,7 @@ import { faPlus, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import api, { resolveMediaUrl } from '../../services/api';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const UserProfile = ({ route, navigation }) => {
   const { userId } = route.params || {};
@@ -16,6 +17,9 @@ const UserProfile = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
   const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { t } = useT();
+  
 
   const loadPosts = async (targetUserId) => {
     try {
@@ -42,7 +46,7 @@ const UserProfile = ({ route, navigation }) => {
         setPosts([]);
       }
     } catch (error) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load profile');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('post.loadProfileFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +66,7 @@ const UserProfile = ({ route, navigation }) => {
       await api.post(`/users/${user.id}/follow`);
       await loadProfile(); // refresh unlock + stats + posts
     } catch (error) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to update follow');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('post.updateFollowFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,12 +76,12 @@ const UserProfile = ({ route, navigation }) => {
     if (!user) return;
 
     Alert.alert(
-      'Delete follower',
-      `Remove @${user.username} from your followers?`,
+      t('post.deleteFollowerTitle'),
+      t('post.deleteFollowerBody', { username: user.username }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('post.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -92,7 +96,7 @@ const UserProfile = ({ route, navigation }) => {
                 };
               });
             } catch (error) {
-              Alert.alert('Error', error?.response?.data?.message || 'Failed to delete follower');
+              Alert.alert(t('common.error'), error?.response?.data?.message || t('post.deletedFollowerFailed'));
             } finally {
               setIsSubmitting(false);
             }
@@ -142,8 +146,8 @@ const UserProfile = ({ route, navigation }) => {
 
       {user.isPrivateLocked && (
         <View style={style.privateNotice}>
-          <Text style={style.privateNoticeTitle}>Private Account</Text>
-          <Text style={style.privateNoticeText}>Follow this user to view their profile details.</Text>
+          <Text style={style.privateNoticeTitle}>{t('userProfile.privateTitle')}</Text>
+          <Text style={style.privateNoticeText}>{t('userProfile.privateText')}</Text>
         </View>
       )}
 
@@ -151,7 +155,7 @@ const UserProfile = ({ route, navigation }) => {
         <View style={style.statsRow}>
           <View style={style.statItem}>
             <Text style={style.statValue}>{user.postsCount}</Text>
-            <Text style={style.statLabel}>Posts</Text>
+            <Text style={style.statLabel}>{t('profile.posts')}</Text>
           </View>
           <View style={style.divider} />
           <TouchableOpacity
@@ -159,7 +163,7 @@ const UserProfile = ({ route, navigation }) => {
             onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'followers' })}
           >
             <Text style={style.statValue}>{user.followersCount}</Text>
-            <Text style={style.statLabel}>Followers</Text>
+            <Text style={style.statLabel}>{t('profile.followers')}</Text>
           </TouchableOpacity>
           <View style={style.divider} />
           <TouchableOpacity
@@ -167,7 +171,7 @@ const UserProfile = ({ route, navigation }) => {
             onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'following' })}
           >
             <Text style={style.statValue}>{user.followingCount}</Text>
-            <Text style={style.statLabel}>Following</Text>
+            <Text style={style.statLabel}>{t('profile.following')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -190,7 +194,7 @@ const UserProfile = ({ route, navigation }) => {
                 user.isFollowing ? style.actionButtonTextSecondary : style.actionButtonTextPrimary,
               ]}
             >
-              {user.isFollowing ? 'Unfollow' : 'Follow'}
+              {user.isFollowing ? t('common.unfollow') : t('common.follow')}
             </Text>
           </TouchableOpacity>
 
@@ -201,7 +205,7 @@ const UserProfile = ({ route, navigation }) => {
               disabled={isSubmitting}
             >
               <FontAwesomeIcon icon={faTrash} size={14} color="#FFFFFF" />
-              <Text style={[style.actionButtonText, style.actionButtonTextPrimary]}>Delete follower</Text>
+              <Text style={[style.actionButtonText, style.actionButtonTextPrimary]}>{t('common.deleteFollower')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -245,7 +249,7 @@ const UserProfile = ({ route, navigation }) => {
       ListEmptyComponent={
         user.isPrivateLocked || isPostsLoading ? null : (
           <View style={style.emptyWrap}>
-            <Text style={style.emptyText}>No posts yet</Text>
+            <Text style={style.emptyText}>{t('userProfile.noPostsYet')}</Text>
           </View>
         )
       }

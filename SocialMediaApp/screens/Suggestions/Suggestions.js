@@ -6,11 +6,14 @@ import { Routes } from '../../navigation/Routes';
 import UserProfileImage from '../../components/UserProfileImage/UserProfileImage';
 import { horizontalScale } from '../../assets/styles/scaling';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const Suggestions = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { t } = useT();
+  
   const loadSuggestions = async () => {
     try {
       setIsLoading(true);
@@ -40,12 +43,12 @@ const Suggestions = ({ navigation }) => {
 
   return (
     <View style={style.container}>
-      <Text style={style.title}>Friend Suggestions</Text>
+      <Text style={style.title}>{t('suggestions.title')}</Text>
 
       <FlatList
         data={users}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={style.emptyText}>No suggestions right now</Text>}
+        ListEmptyComponent={<Text style={style.emptyText}>{t('suggestions.empty')}</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={style.card}
@@ -59,7 +62,7 @@ const Suggestions = ({ navigation }) => {
               <Text style={style.name}>{item.fullName || item.username}</Text>
               <Text style={style.username}>@{item.username}</Text>
             </View>
-            <Text style={style.viewText}>View</Text>
+            <Text style={style.viewText}>{t('post.view')}</Text>
           </TouchableOpacity>
         )}
       />

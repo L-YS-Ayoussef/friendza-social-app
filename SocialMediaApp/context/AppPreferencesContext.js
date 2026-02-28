@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DevSettings, I18nManager } from 'react-native';
 
 const PREFS_KEY = 'friendza_app_prefs_v1';
 
@@ -17,7 +18,10 @@ export const AppPreferencesProvider = ({ children }) => {
         if (raw) {
           const parsed = JSON.parse(raw);
           if (typeof parsed.autoPlayStories === 'boolean') setAutoPlayStories(parsed.autoPlayStories);
-          if (parsed.language === 'en' || parsed.language === 'ar') setLanguage(parsed.language);
+          if (parsed.language === 'en' || parsed.language === 'ar'){
+            setLanguage(parsed.language);
+            applyRTL(parsed.language);
+          }
         }
       } catch (e) {
         console.log('Prefs load error:', e?.message);
@@ -44,6 +48,7 @@ export const AppPreferencesProvider = ({ children }) => {
 
   const updateLanguage = async (value) => {
     setLanguage(value);
+    applyRTL(value);
     await persist({ autoPlayStories, language: value });
   };
 
@@ -57,6 +62,16 @@ export const AppPreferencesProvider = ({ children }) => {
     }),
     [autoPlayStories, language, isReady]
   );
+
+  const applyRTL = (lang) => {
+    const shouldRTL = lang === 'ar';
+    I18nManager.allowRTL(true);
+
+    if (I18nManager.isRTL !== shouldRTL) {
+      I18nManager.forceRTL(shouldRTL);
+      DevSettings.reload(); // applies RTL immediately in dev
+    }
+  };
 
   return (
     <AppPreferencesContext.Provider value={value}>

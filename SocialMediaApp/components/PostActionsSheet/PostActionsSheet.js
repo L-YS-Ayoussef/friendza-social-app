@@ -20,6 +20,7 @@ import {
   faUserMinus,
 } from '@fortawesome/free-solid-svg-icons';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const SHEET_HEIGHT = 340;
 
@@ -47,6 +48,7 @@ const PostActionsSheet = ({
 }) => {
   const [busyKey, setBusyKey] = useState(null);
   const anim = useRef(new Animated.Value(0)).current;
+  const { t, isRTL  } = useT();
 
   useEffect(() => {
     if (visible) {
@@ -67,25 +69,25 @@ const PostActionsSheet = ({
 
     if (isOwner) {
       return [
-        { key: 'view', label: 'View', icon: faEye },
-        ...(canEdit ? [{ key: 'edit', label: 'Edit', icon: faPen }] : []),
-        { key: 'addToStory', label: 'Add to story', icon: faPlus },
-        { key: 'delete', label: 'Delete', icon: faTrash, danger: true },
+        { key: 'view', label: t('common.view'), icon: faEye },
+        ...(canEdit ? [{ key: 'edit', label: t('common.edit'), icon: faPen }] : []),
+        { key: 'addToStory', label: t('common.addToStory'), icon: faPlus },
+        { key: 'delete', label: t('common.delete'), icon: faTrash, danger: true },
       ];
     }
 
     return [
       {
         key: 'follow',
-        label: isFollowingAuthor ? 'Unfollow' : 'Follow',
+        label: isFollowingAuthor ? t('common.unfollow') : t('common.follow'),
         icon: isFollowingAuthor ? faUserMinus : faUserPlus,
       },
       {
         key: 'save',
-        label: isSaved ? 'Unsave' : 'Save',
+        label: isSaved ? t('common.unsave') : t('common.save'),
         icon: faBookmark,
       },
-      { key: 'view', label: 'View', icon: faEye },
+      { key: 'view', label: t('common.view'), icon: faEye },
     ];
   }, [post, isOwner, canEdit, isFollowingAuthor, isSaved]);
 
@@ -115,15 +117,15 @@ const PostActionsSheet = ({
     }
 
     if (actionKey === 'delete') {
-      Alert.alert('Delete post', 'Are you sure you want to delete this post?', [
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert('Delete post', t('post.deletePostConfirm'), [
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('post.deletePostTitle'),
           style: 'destructive',
           onPress: () =>
             run('delete', async () => {
               await onDelete?.();
-              showToast?.('Post deleted ✅');
+              showToast?.(t('post.postDeleted'));
               onClose?.();
             }),
         },
@@ -134,7 +136,7 @@ const PostActionsSheet = ({
     if (actionKey === 'addToStory') {
       run('addToStory', async () => {
         await onAddToStory?.();
-        showToast?.('Added to your story ✅');
+        showToast?.(t('post.addedToStory'));
         onClose?.();
       });
       return;
@@ -143,7 +145,7 @@ const PostActionsSheet = ({
     if (actionKey === 'follow') {
       run('follow', async () => {
         const nextIsFollowing = await onToggleFollow?.(); // expect boolean
-        showToast?.(nextIsFollowing ? `Now following @${post.username}` : `Unfollowed @${post.username}`);
+        showToast?.(nextIsFollowing ? t('post.nowFollowing', { username: post.username }) : t('post.unfollowed', { username: post.username }));
         onClose?.();
       });
       return;
@@ -152,7 +154,7 @@ const PostActionsSheet = ({
     if (actionKey === 'save') {
       run('save', async () => {
         const nextIsSaved = await onToggleSave?.(); // expect boolean
-        showToast?.(nextIsSaved ? 'Saved successfully ✅' : 'Removed from saved');
+        showToast?.(nextIsSaved ? t('post.savedOk') : t('post.unsavedOk'));
         onClose?.();
       });
       return;
@@ -167,7 +169,7 @@ const PostActionsSheet = ({
 
       <Animated.View style={[style.sheet, { transform: [{ translateY }] }]}>
         <View style={style.sheetHandle} />
-        <Text style={style.title}>Actions</Text>
+        <Text style={style.title}>{t('post.actionsTitle')}</Text>
 
         {actions.map((a) => (
           <TouchableOpacity
@@ -176,7 +178,7 @@ const PostActionsSheet = ({
             onPress={() => handlePress(a.key)}
             disabled={!!busyKey}
           >
-            <View style={style.rowLeft}>
+            <View style={[style.rowLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               <FontAwesomeIcon icon={a.icon} size={18} color={a.danger ? '#EF4444' : '#111827'} />
               <Text style={[style.rowText, a.danger && style.rowTextDanger]}>{a.label}</Text>
             </View>
@@ -186,7 +188,7 @@ const PostActionsSheet = ({
         ))}
 
         <TouchableOpacity style={style.cancelBtn} onPress={onClose} disabled={!!busyKey}>
-          <Text style={style.cancelText}>Cancel</Text>
+          <Text style={style.cancelText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>

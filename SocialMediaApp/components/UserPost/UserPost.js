@@ -16,31 +16,33 @@ import {
 import style from './style';
 import { horizontalScale, scaleFontSize } from '../../assets/styles/scaling';
 import PostMedia from '../PostMedia/PostMedia';
-
-const formatRelativePostTime = (value) => {
-  if (!value) return '';
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const week = 7 * day;
-
-  if (diffMs < minute) return 'Just now';
-  if (diffMs < hour) return `${Math.floor(diffMs / minute)}m`;
-  if (diffMs < day) return `${Math.floor(diffMs / hour)}h`;
-  if (diffMs < week) return `${Math.floor(diffMs / day)}d`;
-
-  // local timezone display
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-};
+import useT from '../../i18n/useT';
 
 const UserPost = (props) => {
+  const { t } = useT();
+
+  const formatRelativePostTime = (value) => {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    const week = 7 * day;
+
+    if (diffMs < minute) return t('time.justNow');
+    if (diffMs < hour) return `${Math.floor(diffMs / minute)} ${t('time.minShort')}`;
+    if (diffMs < day) return `${Math.floor(diffMs / hour)} ${t('time.hourShort')}`;
+    if (diffMs < week) return `${Math.floor(diffMs / day)} ${t('time.dayShort')}`;
+
+    // local timezone display
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
   return (
     <View style={style.userPostContainer}>

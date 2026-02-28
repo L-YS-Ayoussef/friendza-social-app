@@ -30,6 +30,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Routes } from '../../navigation/Routes';
 import api, { resolveMediaUrl } from '../../services/api';
 import { useThemeMode } from '../../context/ThemeContext';
+import useT from '../../i18n/useT';
 
 const Profile = ({ navigation }) => {
   const { signOut } = useAuth();
@@ -39,6 +40,8 @@ const Profile = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAvatarActions, setShowAvatarActions] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  
+  const { t } = useT();
   
   const openFollowList = (type) => {
     if (!profile?.id) return;
@@ -55,7 +58,7 @@ const Profile = ({ navigation }) => {
       const response = await api.get('/users/me/profile');
       setProfile(response.data?.user || null);
     } catch (error) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to load profile');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('post.loadProfileFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +94,7 @@ const Profile = ({ navigation }) => {
 
       setShowAvatarActions(false);
     } catch (error) {
-      Alert.alert('Error', error?.response?.data?.message || 'Failed to update avatar');
+      Alert.alert(t('common.error'), error?.response?.data?.message || t('post.updateAvatarFailed'));
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -134,7 +137,7 @@ const Profile = ({ navigation }) => {
     const hasPermission = await requestCameraPermission();
 
     if (!hasPermission) {
-      Alert.alert('Permission needed', 'Camera permission is required');
+      Alert.alert(t('post.permissionNeeded'), t('post.cameraPermissionBody'));
       return;
     }
 
@@ -147,7 +150,7 @@ const Profile = ({ navigation }) => {
     if (result.didCancel) return;
 
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open camera');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openCameraFailed'));
       return;
     }
 
@@ -161,7 +164,7 @@ const Profile = ({ navigation }) => {
     const hasPermission = await requestGalleryPermission();
 
     if (!hasPermission) {
-      Alert.alert('Permission needed', 'Gallery permission is required');
+      Alert.alert(t('post.permissionNeeded'), t('post.galleryPermissionBody'));
       return;
     }
 
@@ -174,7 +177,7 @@ const Profile = ({ navigation }) => {
     if (result.didCancel) return;
 
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open gallery');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openGalleryFailed'));
       return;
     }
 
@@ -285,7 +288,7 @@ const Profile = ({ navigation }) => {
             <TouchableOpacity onPress={() => openFollowList('following')}>
               <View>
                 <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followingCount || 0}</Text>
-                <Text style={[style.statType, { color: colors.subText }]}>Following</Text>
+                <Text style={[style.statType, { color: colors.subText }]}>{t('profile.following')}</Text>
               </View>
             </TouchableOpacity>
             <View style={[style.statBorder, { borderColor: colors.border }]} />
@@ -293,14 +296,14 @@ const Profile = ({ navigation }) => {
             <TouchableOpacity onPress={() => openFollowList('followers')}>
               <View>
                 <Text style={[style.statAmount, { color: colors.text }]}>{profile?.followersCount || 0}</Text>
-                <Text style={[style.statType, { color: colors.subText }]}>Followers</Text>
+                <Text style={[style.statType, { color: colors.subText }]}>{t('profile.followers')}</Text>
               </View>
             </TouchableOpacity>
             <View style={[style.statBorder, { borderColor: colors.border }]} />
 
             <View>
               <Text style={[style.statAmount, { color: colors.text }]}>{profile?.postsCount || 0}</Text>
-              <Text style={[style.statType, { color: colors.subText }]}>Posts</Text>
+              <Text style={[style.statType, { color: colors.subText }]}>{t('profile.posts')}</Text>
             </View>
           </View>
 

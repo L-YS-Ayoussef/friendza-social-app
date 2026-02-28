@@ -22,6 +22,7 @@ import UserPost from '../../components/UserPost/UserPost';
 import globalStyle from '../../assets/styles/globalStyle';
 import { Routes } from '../../navigation/Routes';
 import api, { resolveMediaUrl } from '../../services/api';
+import useT from '../../i18n/useT';
 
 const Home = ({ navigation }) => {
   const [stories, setStories] = useState([]);
@@ -34,6 +35,8 @@ const Home = ({ navigation }) => {
 
   const [actionsVisible, setActionsVisible] = useState(false);
   const [activePost, setActivePost] = useState(null);
+
+  const { t } = useT();
 
   const splitName = (fullName, username) => {
     const fallback = username || 'User';
@@ -279,11 +282,11 @@ const Home = ({ navigation }) => {
                       <View style={style.addStoryCircle}>
                         <FontAwesomeIcon icon={faPlus} size={16} color="#0150EC" />
                       </View>
-                      <Text style={style.addStoryText}>Add Story</Text>
+                      <Text style={style.addStoryText}>{t('story.addStory')}</Text>
                     </TouchableOpacity>
                   }
                   ListEmptyComponent={
-                    <Text style={style.emptyText}>No active stories yet</Text>
+                    <Text style={style.emptyText}>{t('story.noActiveStoriesYet')}</Text>
                   }
                   renderItem={({ item, index }) => (
                     <UserStory

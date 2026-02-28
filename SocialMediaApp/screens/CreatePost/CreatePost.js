@@ -16,6 +16,7 @@ import api, { resolveMediaUrl } from '../../services/api';
 import style from '../CreateContent/style';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
+import useT from '../../i18n/useT';
 
 const CreatePost = ({ navigation, route }) => {
   const { mode, postId, post } = route.params || {};
@@ -29,14 +30,19 @@ const CreatePost = ({ navigation, route }) => {
   const [existingMediaUrl, setExistingMediaUrl] = useState(null);
   const [existingMediaType, setExistingMediaType] = useState('image');
 
-useEffect(() => {
-  if (!isEdit || !post) return;
+  const { t, isRTL } = useT();
+  const rtlText = { textAlign: isRTL ? 'right' : 'left' };
+  const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
+  const rtlPasswordInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: 'ltr' };
 
-  setCaption(post.caption || '');
-  setLocation(post.location || '');
-  setExistingMediaUrl(resolveMediaUrl(post.mediaUrl || post.media_url));
-  setExistingMediaType(post.mediaType || post.media_type || 'image');
-}, [isEdit, post]);
+  useEffect(() => {
+    if (!isEdit || !post) return;
+
+    setCaption(post.caption || '');
+    setLocation(post.location || '');
+    setExistingMediaUrl(resolveMediaUrl(post.mediaUrl || post.media_url));
+    setExistingMediaType(post.mediaType || post.media_type || 'image');
+  }, [isEdit, post]);
 
   const onPickFromGallery = async () => {
     const result = await launchImageLibrary({
@@ -47,7 +53,7 @@ useEffect(() => {
 
     if (result.didCancel) return;
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open gallery');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openGalleryFailed'));
       return;
     }
 
@@ -65,7 +71,7 @@ useEffect(() => {
 
     if (result.didCancel) return;
     if (result.errorCode) {
-      Alert.alert('Error', result.errorMessage || 'Could not open camera');
+      Alert.alert(t('common.error'), result.errorMessage || t('post.openCameraFailed'));
       return;
     }
 
@@ -103,14 +109,14 @@ useEffect(() => {
           });
         }
 
-        Alert.alert('Success', 'Post updated successfully');
+        Alert.alert(t('common.success'), t('post.updatedOk'));
         navigation.goBack();
         return;
       }
 
       // create (original logic)
       if (!selectedMedia?.uri) {
-        Alert.alert('Missing media', 'Please select or capture an image/video');
+        Alert.alert(t('auth.missingDataTitle'), t('post.missingMedia'));
         return;
       }
 
@@ -131,11 +137,13 @@ useEffect(() => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert('Success', 'Post created successfully');
+      Alert.alert(t('common.success'), t('post.createdOk'));
       navigation.goBack();
     } catch (error) {
-      const message = error?.response?.data?.message || (isEdit ? 'Failed to update post' : 'Failed to create post');
-      Alert.alert('Error', message);
+      const message =
+        error?.response?.data?.message ||
+        (isEdit ? t('post.failedUpdatePost') : t('post.failedCreatePost'));
+      Alert.alert(t('common.error'), message);
     } finally {
       setIsSubmitting(false);
     }
@@ -144,10 +152,10 @@ useEffect(() => {
   return (
     <SafeAreaView style={style.container}>
       <ScrollView contentContainerStyle={style.content} keyboardShouldPersistTaps="handled">
-        <Text style={style.title}>{isEdit ? 'Edit Post' : 'Create Post'}</Text>
-        <Text style={style.subtitle}>Upload from gallery or take a photo.</Text>
+        <Text style={style.title}>{isEdit ? t('common.edit') : t('nav.createPost')}</Text>
+        <Text style={style.subtitle}>{t('post.createPostSubtitle')}</Text>
 
-        <Text style={style.label}>Post image *</Text>
+        <Text style={style.label}>{t('post.postMediaLabel')}</Text>
         <View style={style.sourceRow}>
           <TouchableOpacity style={style.sourceIconButton} onPress={onOpenCamera}>
             <FontAwesomeIcon icon={faCamera} size={18} color="#111827" />
@@ -172,23 +180,23 @@ useEffect(() => {
               <Image source={{ uri: existingMediaUrl }} style={style.previewImage} resizeMode="cover" />
             )
           ) : (
-            <Text style={style.previewPlaceholder}>No image/video selected</Text>
+            <Text style={style.previewPlaceholder}>{t('post.noMediaSelected')}</Text>
           )}
         </View>
 
-        <Text style={style.label}>Location (optional)</Text>
+        <Text style={style.label}>{t('post.locationOptional')}</Text>
         <TextInput
           style={style.input}
-          placeholder="Cairo, Egypt"
+          placeholder={t('post.locationPlaceholder')}
           placeholderTextColor="#94A3B8"
           value={location}
           onChangeText={setLocation}
         />
 
-        <Text style={style.label}>Caption (optional)</Text>
+        <Text style={style.label}>{t('post.captionOptional')}</Text>
         <TextInput
           style={[style.input, style.textArea]}
-          placeholder="Write something..."
+          placeholder={t('post.writeSomething')}
           placeholderTextColor="#94A3B8"
           multiline
           value={caption}
@@ -200,7 +208,7 @@ useEffect(() => {
           style={[style.button, isSubmitting && style.buttonDisabled]}
           disabled={isSubmitting}
         >
-          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>Publish Post</Text>}
+          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>{t('post.publishPost')}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

@@ -6,10 +6,14 @@ import UserProfileImage from '../../components/UserProfileImage/UserProfileImage
 import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
+import useT from '../../i18n/useT';
 
 const RecentLikes = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const { t, isRTL } = useT();
+  const rtlText = { textAlign: isRTL ? 'right' : 'left' };
 
   const loadLikes = async () => {
     try {
@@ -50,12 +54,12 @@ const RecentLikes = ({ navigation }) => {
 
   return (
     <SafeAreaView style={style.container}>
-      <Text style={style.title}>Likes</Text>
+      <Text style={style.title}>{t('likes.recentLikes')}</Text>
 
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={style.emptyText}>No likes yet</Text>}
+        ListEmptyComponent={<Text style={style.emptyText}>{t('likes.noLikes')}</Text>}
         renderItem={({ item }) => (
           <View style={style.likeRow}>
             <TouchableOpacity
@@ -74,7 +78,7 @@ const RecentLikes = ({ navigation }) => {
             >
               <Text style={style.likeText}>
                 <Text style={style.likeName}>{item.likerName}</Text>
-                <Text> liked your post</Text>
+                <Text> {t('post.likedYourPost')}</Text>
               </Text>
             </TouchableOpacity>
           </View>
