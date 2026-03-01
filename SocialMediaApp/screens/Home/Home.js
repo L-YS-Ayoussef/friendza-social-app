@@ -15,7 +15,7 @@ import { faHeart, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 import PostActionsSheet from '../../components/PostActionsSheet/PostActionsSheet';
 import BottomToast from '../../components/BottomToast/BottomToast';
-
+import StoryActionsSheet from '../../components/StoryActionsSheet/StoryActionsSheet';
 import style from './style';
 import UserStory from '../../components/UserStory/UserStory';
 import UserPost from '../../components/UserPost/UserPost';
@@ -35,6 +35,57 @@ const Home = ({ navigation }) => {
 
   const [actionsVisible, setActionsVisible] = useState(false);
   const [activePost, setActivePost] = useState(null);
+
+  const [storyActionsVisible, setStoryActionsVisible] = useState(false);
+  const [activeStoryCircle, setActiveStoryCircle] = useState(null);
+  const [storyIsFollowing, setStoryIsFollowing] = useState(false);
+
+  const openStoryActions = async (circle) => {
+    setActiveStoryCircle(circle);
+
+    const owner = Number(circle.userId) === Number(currentUser?.id);
+    if (!owner) {
+      try {
+        const res = await api.get(`/users/${circle.userId}/profile`);
+        setStoryIsFollowing(!!res.data?.user?.isFollowing);
+      } catch {
+        setStoryIsFollowing(false);
+      }
+    } else {
+      setStoryIsFollowing(false);
+    }
+
+    setStoryActionsVisible(true);
+  };
+
+  const closeStoryActions = () => {
+    setStoryActionsVisible(false);
+    setActiveStoryCircle(null);
+  };
+
+  const viewStoryFromActions = () => {
+    if (!activeStoryCircle) return;
+    const firstStoryIndex = storyByUserId[activeStoryCircle.userId]?.index ?? 0;
+
+    navigation.navigate(Routes.StoryViewer, {
+      stories,
+      startIndex: firstStoryIndex,
+    });
+  };
+
+  const deleteStoryFromActions = async () => {
+    if (!activeStoryCircle?.id) return;
+    await api.delete(`/stories/${activeStoryCircle.id}`);
+    setStories((prev) => prev.filter((s) => s.id !== activeStoryCircle.id));
+  };
+
+  const toggleFollowStoryUser = async () => {
+    if (!activeStoryCircle?.userId) return false;
+    const res = await api.post(`/users/${activeStoryCircle.userId}/follow`);
+    const next = !!res.data?.isFollowing;
+    setStoryIsFollowing(next);
+    return next;
+  };
 
   const { t } = useT();
 
@@ -300,6 +351,7 @@ const Home = ({ navigation }) => {
                           startIndex: firstStoryIndex, // start from this user's first story
                         });
                       }}
+                      onLongPress={() => openStoryActions(item)}
                     />
                   )}
                 />
@@ -368,6 +420,22 @@ const Home = ({ navigation }) => {
           showToast={(msg) => toastRef.current?.show(msg)}
         />
 
+        <StoryActionsSheet
+          visible={storyActionsVisible}
+          onClose={closeStoryActions}
+          story={
+            activeStoryCircle
+              ? { id: activeStoryCircle.id, userId: activeStoryCircle.userId, username: activeStoryCircle.username || '' }
+              : null
+          }
+          isOwner={!!activeStoryCircle && Number(activeStoryCircle.userId) === Number(currentUser?.id)}
+          isFollowingUser={storyIsFollowing}
+          onView={viewStoryFromActions}
+          onDelete={deleteStoryFromActions}
+          onToggleFollow={toggleFollowStoryUser}
+          showToast={(msg) => toastRef.current?.show(msg)}
+        />
+        
         <BottomToast ref={toastRef} />
       </SafeAreaView>
     </SafeAreaProvider>

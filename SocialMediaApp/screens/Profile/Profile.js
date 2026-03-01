@@ -20,6 +20,7 @@ import {
   faPen,
   faCamera,
   faImages,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
@@ -62,6 +63,33 @@ const Profile = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onRemoveAvatar = async () => {
+    if (!profile?.avatarUrl) return;
+
+    Alert.alert('Remove photo', 'Remove your profile photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setIsUploadingAvatar(true);
+            const res = await api.delete('/users/me/avatar');
+            setProfile((prev) => ({
+              ...prev,
+              avatarUrl: res.data?.user?.avatarUrl || null,
+            }));
+            setShowAvatarActions(false);
+          } catch (error) {
+            Alert.alert('Error', error?.response?.data?.message || 'Failed to remove avatar');
+          } finally {
+            setIsUploadingAvatar(false);
+          }
+        },
+      },
+    ]);
   };
 
   useFocusEffect(
@@ -276,6 +304,16 @@ const Profile = ({ navigation }) => {
               >
                 <FontAwesomeIcon icon={faImages} size={16} color={colors.text} />
               </TouchableOpacity>
+
+              {profile?.avatarUrl ? (
+                <TouchableOpacity
+                  style={[style.avatarActionIcon, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={onRemoveAvatar}
+                  disabled={isUploadingAvatar}
+                >
+                  <FontAwesomeIcon icon={faTrash} size={16} color="#EF4444" />
+                </TouchableOpacity>
+              ) : null}
             </View>
           )}
 

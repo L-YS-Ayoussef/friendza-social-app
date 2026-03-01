@@ -126,6 +126,53 @@ router.post('/from-post/:postId', authMiddleware, async (req, res) => {
   }
 });
 
+// DELETE /api/stories/:storyId (owner only)
+router.delete('/:storyId', authMiddleware, async (req, res) => {
+  try {
+    const storyId = Number(req.params.storyId);
+    if (!storyId) return res.status(400).json({ message: 'invalid story id' });
+
+    const found = await pool.query(
+      `SELECT id, user_id, media_url FROM stories WHERE id = $1 LIMIT 1`,
+      [storyId]
+    );
+    if (!found.rows.length) return res.status(404).json({ message: 'story not found' });
+
+    const story = found.rows[0];
+    if (Number(story.user_id) !== Number(req.userId)) {
+      return res.status(403).json({ message: 'only owner can delete this story' });
+    }
+
+    await pool.query(`DELETE FROM stories WHERE id = $1`, [storyId]);
+
+    // delete file if unused
+    const mediaUrl = story.media_url;
+    if (mediaUrl && mediaUrl.startsWith('/uploads/')) {
+      const usage = await pool.query(
+        `
+        SELECT
+          (SELECT COUNT(*)::INT FROM posts WHERE media_url = $1) AS posts_using,
+          (SELECT COUNT(*)::INT FROM stories WHERE media_url = $1) AS stories_using
+        `,
+        [mediaUrl]
+      );
+
+      const total = (usage.rows[0].posts_using || 0) + (usage.rows[0].stories_using || 0);
+      if (total === 0) {
+        const filePath = path.join(__dirname, '../../uploads', path.basename(mediaUrl));
+        if (fs.existsSync(filePath)) {
+          try { fs.unlinkSync(filePath); } catch (_) {}
+        }
+      }
+    }
+
+    return res.status(200).json({ message: 'story deleted', storyId });
+  } catch (error) {
+    console.error('Delete story error:', error);
+    return res.status(500).json({ message: 'server error while deleting story' });
+  }
+});
+
 // GET /api/stories/active
 router.get('/active', authMiddleware, async (req, res) => {
   try {

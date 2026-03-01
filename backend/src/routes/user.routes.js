@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const pool = require('../config/db');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
@@ -88,6 +89,49 @@ router.put('/me/privacy', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Update privacy error:', error);
     return res.status(500).json({ message: 'server error while updating privacy' });
+  }
+});
+
+// DELETE /api/users/me/avatar
+router.delete('/me/avatar', authMiddleware, async (req, res) => {
+  try {
+    const old = await pool.query(`SELECT avatar_url FROM users WHERE id = $1 LIMIT 1`, [req.userId]);
+    if (!old.rows.length) return res.status(404).json({ message: 'user not found' });
+
+    const oldUrl = old.rows[0].avatar_url;
+
+    const updated = await pool.query(
+      `
+      UPDATE users
+      SET avatar_url = NULL
+      WHERE id = $1
+      RETURNING id, username, full_name, avatar_url, bio, created_at
+      `,
+      [req.userId]
+    );
+
+    // delete old file if exists
+    if (oldUrl && oldUrl.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, '../../uploads', path.basename(oldUrl));
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (_) {}
+      }
+    }
+
+    return res.status(200).json({
+      message: 'avatar removed',
+      user: {
+        id: updated.rows[0].id,
+        username: updated.rows[0].username,
+        fullName: updated.rows[0].full_name,
+        avatarUrl: updated.rows[0].avatar_url,
+        bio: updated.rows[0].bio,
+        createdAt: updated.rows[0].created_at,
+      },
+    });
+  } catch (error) {
+    console.error('Remove avatar error:', error);
+    return res.status(500).json({ message: 'server error while removing avatar' });
   }
 });
 

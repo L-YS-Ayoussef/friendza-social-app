@@ -150,6 +150,8 @@ export const translations = {
     story: {
       addStory: 'Add Story',
       noActiveStoriesYet: 'No active stories yet',
+      deleteConfirm: 'Delete this story?',
+      deletedOk: 'Story deleted ✅',
     },
   },
 
@@ -303,6 +305,8 @@ export const translations = {
     story: {
       addStory: 'إضافة ستوري',
       noActiveStoriesYet: 'لا توجد ستوري نشطة بعد',
+      deleteConfirm: 'حذف هذه الستوري؟',
+      deletedOk: 'تم حذف الستوري ✅',
     },
   },
 };
