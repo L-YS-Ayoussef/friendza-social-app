@@ -5,30 +5,30 @@ import { getFontFamily } from '../../assets/fonts/helper';
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: horizontalScale(16),
     paddingTop: verticalScale(12),
+    // backgroundColor from tokens
   },
   centered: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    // backgroundColor from tokens
   },
   title: {
     fontFamily: getFontFamily('Inter', '700'),
     fontSize: scaleFontSize(20),
-    color: '#111827',
     marginBottom: verticalScale(12),
+    // color from tokens
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: horizontalScale(10),
     marginBottom: verticalScale(10),
+    // backgroundColor/borderColor from tokens
   },
   textBlock: {
     flex: 1,
@@ -36,23 +36,23 @@ const style = StyleSheet.create({
   },
   name: {
     fontFamily: getFontFamily('Inter', '600'),
-    color: '#111827',
+    // color from tokens
   },
   username: {
     fontFamily: getFontFamily('Inter', '400'),
-    color: '#64748B',
     marginTop: 2,
+    // color from tokens
   },
   viewText: {
-    color: '#0150EC',
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(13),
+    // color from tokens
   },
   emptyText: {
     textAlign: 'center',
-    color: '#94A3B8',
     marginTop: verticalScale(20),
     fontFamily: getFontFamily('Inter', '400'),
+    // color from tokens
   },
 });
 

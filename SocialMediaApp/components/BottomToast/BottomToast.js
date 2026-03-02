@@ -1,8 +1,11 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Animated, Text } from 'react-native';
 import style from './style';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const BottomToast = forwardRef((props, ref) => {
+  const { colors } = useThemeMode();
+
   const [message, setMessage] = useState('');
   const [mounted, setMounted] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
@@ -41,8 +44,17 @@ const BottomToast = forwardRef((props, ref) => {
   });
 
   return (
-    <Animated.View style={[style.toast, { opacity: anim, transform: [{ translateY }] }]}>
-      <Text style={style.toastText}>{message}</Text>
+    <Animated.View
+      style={[
+        style.toast,
+        {
+          opacity: anim,
+          transform: [{ translateY }],
+          backgroundColor: colors.text,
+        },
+      ]}
+    >
+      <Text style={[style.toastText, { color: colors.background }]}>{message}</Text>
     </Animated.View>
   );
 });

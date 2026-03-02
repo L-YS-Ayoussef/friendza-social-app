@@ -14,6 +14,7 @@ import { faEye, faTrash, faUserPlus, faUserMinus } from '@fortawesome/free-solid
 
 import useT from '../../i18n/useT';
 import style from '../PostActionsSheet/style';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const SHEET_HEIGHT = 260;
 
@@ -28,7 +29,9 @@ const StoryActionsSheet = ({
   onToggleFollow,
   showToast,
 }) => {
-  const { t } = useT();
+  const { t, isRTL } = useT();
+  const { colors } = useThemeMode();
+
   const [busyKey, setBusyKey] = useState(null);
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -105,7 +108,9 @@ const StoryActionsSheet = ({
     if (key === 'follow') {
       run('follow', async () => {
         const next = await onToggleFollow?.(); // boolean
-        showToast?.(next ? t('post.nowFollowing', { username: story.username }) : t('post.unfollowed', { username: story.username }));
+        showToast?.(
+          next ? t('post.nowFollowing', { username: story.username }) : t('post.unfollowed', { username: story.username })
+        );
         onClose?.();
       });
     }
@@ -114,31 +119,42 @@ const StoryActionsSheet = ({
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={style.backdrop} />
+        <View style={[style.backdrop, { backgroundColor: colors.scrim }]} />
       </TouchableWithoutFeedback>
 
-      <Animated.View style={[style.sheet, { transform: [{ translateY }] }]}>
-        <View style={style.sheetHandle} />
-        <Text style={style.title}>{t('post.actionsTitle')}</Text>
+      <Animated.View
+        style={[
+          style.sheet,
+          { transform: [{ translateY }], backgroundColor: colors.surface2, borderTopColor: colors.border },
+        ]}
+      >
+        <View style={[style.sheetHandle, { backgroundColor: colors.border }]} />
+        <Text style={[style.title, { color: colors.text }]}>{t('post.actionsTitle')}</Text>
 
         {actions.map((a) => (
           <TouchableOpacity
             key={a.key}
-            style={[style.row, a.danger && style.rowDanger]}
+            style={[style.row, { borderBottomColor: colors.border }, a.danger && style.rowDanger]}
             onPress={() => handlePress(a.key)}
             disabled={!!busyKey}
           >
-            <View style={style.rowLeft}>
-              <FontAwesomeIcon icon={a.icon} size={18} color={a.danger ? '#EF4444' : '#111827'} />
-              <Text style={[style.rowText, a.danger && style.rowTextDanger]}>{a.label}</Text>
+            <View style={[style.rowLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+              <FontAwesomeIcon icon={a.icon} size={18} color={a.danger ? colors.error : colors.icon} />
+              <Text style={[style.rowText, { color: colors.text }, a.danger && { color: colors.error }]}>
+                {a.label}
+              </Text>
             </View>
 
-            {busyKey === a.key ? <ActivityIndicator /> : null}
+            {busyKey === a.key ? <ActivityIndicator color={colors.primary} /> : null}
           </TouchableOpacity>
         ))}
 
-        <TouchableOpacity style={style.cancelBtn} onPress={onClose} disabled={!!busyKey}>
-          <Text style={style.cancelText}>{t('common.cancel')}</Text>
+        <TouchableOpacity
+          style={[style.cancelBtn, { backgroundColor: colors.surface1 }]}
+          onPress={onClose}
+          disabled={!!busyKey}
+        >
+          <Text style={[style.cancelText, { color: colors.text }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>

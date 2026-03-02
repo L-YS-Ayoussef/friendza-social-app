@@ -14,11 +14,15 @@ import BottomToast from '../../components/BottomToast/BottomToast';
 import style from './style';
 import { horizontalScale } from '../../assets/styles/scaling';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const PostViewer = ({ route, navigation }) => {
   const { postId } = route.params || {};
   const { user: currentUser } = useAuth();
   const toastRef = useRef(null);
+
+  const { t } = useT();
+  const { colors } = useThemeMode();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -27,8 +31,6 @@ const PostViewer = ({ route, navigation }) => {
 
   const [actionsVisible, setActionsVisible] = useState(false);
 
-  const { t } = useT();
-  
   const loadAll = async () => {
     setLoadingPost(true);
     setLoadingComments(true);
@@ -78,22 +80,21 @@ const PostViewer = ({ route, navigation }) => {
 
   if (loadingPost) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator />
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   if (!post) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <Text>{t('post.postNotFound')}</Text>
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <Text style={{ color: colors.text }}>{t('post.postNotFound')}</Text>
       </SafeAreaView>
     );
   }
 
   const closeActions = () => setActionsVisible(false);
-
   const onView = () => {}; // already viewing
 
   const onEdit = () => {
@@ -117,7 +118,7 @@ const PostViewer = ({ route, navigation }) => {
 
   const onDelete = async () => {
     await api.delete(`/posts/${postId}`);
-    toastRef.current?.show('Post deleted ✅');
+    toastRef.current?.show(t('post.postDeleted'));
     navigation.goBack();
   };
 
@@ -171,31 +172,31 @@ const PostViewer = ({ route, navigation }) => {
         onOpenActions={() => setActionsVisible(true)}
       />
 
-      <Text style={style.sectionTitle}>{t('post.commentsTitle')}</Text>
-      {loadingComments ? <ActivityIndicator /> : null}
+      <Text style={[style.sectionTitle, { color: colors.text }]}>{t('post.commentsTitle')}</Text>
+      {loadingComments ? <ActivityIndicator color={colors.primary} /> : null}
     </View>
   );
 
   return (
-    <SafeAreaView style={style.container}>
+    <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={comments}
         keyExtractor={(item) => String(item.id)}
         ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
-          <View style={style.commentRow}>
+          <View style={[style.commentRow, { borderBottomColor: colors.border }]}>
             <UserProfileImage
               imageDimensions={horizontalScale(34)}
               profileImage={resolveMediaUrl(item.user?.avatarUrl)}
             />
             <View style={style.commentTextBlock}>
-              <Text style={style.nameText}>@{item.user?.username}</Text>
-              <Text style={style.commentText}>{item.text}</Text>
+              <Text style={[style.nameText, { color: colors.text }]}>@{item.user?.username}</Text>
+              <Text style={[style.commentText, { color: colors.subText }]}>{item.text}</Text>
             </View>
           </View>
         )}
         ListEmptyComponent={
-          loadingComments ? null : <Text style={style.emptyText}>{t('post.noComments')}</Text>
+          loadingComments ? null : <Text style={[style.emptyText, { color: colors.muted }]}>{t('post.noComments')}</Text>
         }
       />
 

@@ -4,22 +4,23 @@ import { useFocusEffect } from '@react-navigation/native';
 import Video from 'react-native-video';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlus, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
+
 import api, { resolveMediaUrl } from '../../services/api';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const UserProfile = ({ route, navigation }) => {
   const { userId } = route.params || {};
+  const { t } = useT();
+  const { colors } = useThemeMode();
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [isPostsLoading, setIsPostsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { t } = useT();
-  
 
   const loadPosts = async (targetUserId) => {
     try {
@@ -81,7 +82,7 @@ const UserProfile = ({ route, navigation }) => {
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('post.delete'),
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -112,16 +113,16 @@ const UserProfile = ({ route, navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={style.centered}>
-        <ActivityIndicator size="large" />
+      <View style={[style.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (!user) {
     return (
-      <View style={style.centered}>
-        <Text>User not found</Text>
+      <View style={[style.centered, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.text }}>User not found</Text>
       </View>
     );
   }
@@ -139,39 +140,43 @@ const UserProfile = ({ route, navigation }) => {
         />
       </View>
 
-      <Text style={style.name}>{user.fullName || user.username}</Text>
-      <Text style={style.username}>@{user.username}</Text>
+      <Text style={[style.name, { color: colors.text }]}>{user.fullName || user.username}</Text>
+      <Text style={[style.username, { color: colors.subText }]}>@{user.username}</Text>
 
-      {!!user.bio && <Text style={style.bio}>{user.bio}</Text>}
+      {!!user.bio && <Text style={[style.bio, { color: colors.subText }]}>{user.bio}</Text>}
 
       {user.isPrivateLocked && (
-        <View style={style.privateNotice}>
-          <Text style={style.privateNoticeTitle}>{t('userProfile.privateTitle')}</Text>
-          <Text style={style.privateNoticeText}>{t('userProfile.privateText')}</Text>
+        <View style={[style.privateNotice, { borderColor: colors.border, backgroundColor: colors.surface1 }]}>
+          <Text style={[style.privateNoticeTitle, { color: colors.text }]}>{t('userProfile.privateTitle')}</Text>
+          <Text style={[style.privateNoticeText, { color: colors.subText }]}>{t('userProfile.privateText')}</Text>
         </View>
       )}
 
       {!user.isPrivateLocked && (
-        <View style={style.statsRow}>
+        <View style={[style.statsRow, { borderColor: colors.border }]}>
           <View style={style.statItem}>
-            <Text style={style.statValue}>{user.postsCount}</Text>
-            <Text style={style.statLabel}>{t('profile.posts')}</Text>
+            <Text style={[style.statValue, { color: colors.text }]}>{user.postsCount}</Text>
+            <Text style={[style.statLabel, { color: colors.subText }]}>{t('profile.posts')}</Text>
           </View>
-          <View style={style.divider} />
+
+          <View style={[style.divider, { backgroundColor: colors.border }]} />
+
           <TouchableOpacity
             style={style.statItem}
             onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'followers' })}
           >
-            <Text style={style.statValue}>{user.followersCount}</Text>
-            <Text style={style.statLabel}>{t('profile.followers')}</Text>
+            <Text style={[style.statValue, { color: colors.text }]}>{user.followersCount}</Text>
+            <Text style={[style.statLabel, { color: colors.subText }]}>{t('profile.followers')}</Text>
           </TouchableOpacity>
-          <View style={style.divider} />
+
+          <View style={[style.divider, { backgroundColor: colors.border }]} />
+
           <TouchableOpacity
             style={style.statItem}
             onPress={() => navigation.navigate(Routes.FollowList, { userId: user.id, type: 'following' })}
           >
-            <Text style={style.statValue}>{user.followingCount}</Text>
-            <Text style={style.statLabel}>{t('profile.following')}</Text>
+            <Text style={[style.statValue, { color: colors.text }]}>{user.followingCount}</Text>
+            <Text style={[style.statLabel, { color: colors.subText }]}>{t('profile.following')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -179,19 +184,26 @@ const UserProfile = ({ route, navigation }) => {
       {!user.isOwnProfile && (
         <View style={style.actionsRow}>
           <TouchableOpacity
-            style={[style.actionButton, user.isFollowing ? style.actionButtonSecondary : style.actionButtonPrimary]}
+            style={[
+              style.actionButton,
+              {
+                backgroundColor: user.isFollowing ? colors.surface1 : colors.primary,
+                borderColor: user.isFollowing ? colors.border : 'transparent',
+                borderWidth: user.isFollowing ? 1 : 0,
+              },
+            ]}
             onPress={onToggleFollow}
             disabled={isSubmitting}
           >
             <FontAwesomeIcon
               icon={user.isFollowing ? faTimes : faPlus}
               size={14}
-              color={user.isFollowing ? '#0150EC' : '#FFFFFF'}
+              color={user.isFollowing ? colors.primary : colors.onPrimary}
             />
             <Text
               style={[
                 style.actionButtonText,
-                user.isFollowing ? style.actionButtonTextSecondary : style.actionButtonTextPrimary,
+                { color: user.isFollowing ? colors.primary : colors.onPrimary },
               ]}
             >
               {user.isFollowing ? t('common.unfollow') : t('common.follow')}
@@ -200,12 +212,17 @@ const UserProfile = ({ route, navigation }) => {
 
           {showDeleteFollower && (
             <TouchableOpacity
-              style={[style.actionButton, style.actionButtonDanger]}
+              style={[
+                style.actionButton,
+                { backgroundColor: colors.error },
+              ]}
               onPress={onDeleteFollower}
               disabled={isSubmitting}
             >
-              <FontAwesomeIcon icon={faTrash} size={14} color="#FFFFFF" />
-              <Text style={[style.actionButtonText, style.actionButtonTextPrimary]}>{t('common.deleteFollower')}</Text>
+              <FontAwesomeIcon icon={faTrash} size={14} color={colors.onTertiary} />
+              <Text style={[style.actionButtonText, { color: colors.onTertiary }]}>
+                {t('common.deleteFollower')}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -213,7 +230,7 @@ const UserProfile = ({ route, navigation }) => {
 
       {!user.isPrivateLocked && isPostsLoading && (
         <View style={style.postsLoading}>
-          <ActivityIndicator />
+          <ActivityIndicator color={colors.primary} />
         </View>
       )}
     </View>
@@ -229,9 +246,9 @@ const UserProfile = ({ route, navigation }) => {
         onPress={() => navigation.navigate(Routes.PostViewer, { postId: item.id })}
       >
         {mediaType === 'video' ? (
-          <Video source={{ uri: mediaUrl }} style={style.thumb} resizeMode="cover" paused />
+          <Video source={{ uri: mediaUrl }} style={[style.thumb, { backgroundColor: colors.surface2 }]} resizeMode="cover" paused />
         ) : (
-          <Image source={{ uri: mediaUrl }} style={style.thumb} />
+          <Image source={{ uri: mediaUrl }} style={[style.thumb, { backgroundColor: colors.surface2 }]} />
         )}
       </TouchableOpacity>
     );
@@ -239,7 +256,7 @@ const UserProfile = ({ route, navigation }) => {
 
   return (
     <FlatList
-      style={style.container}
+      style={[style.container, { backgroundColor: colors.background }]}
       data={user.isPrivateLocked ? [] : posts}
       numColumns={3}
       keyExtractor={(item) => String(item.id)}
@@ -249,7 +266,7 @@ const UserProfile = ({ route, navigation }) => {
       ListEmptyComponent={
         user.isPrivateLocked || isPostsLoading ? null : (
           <View style={style.emptyWrap}>
-            <Text style={style.emptyText}>{t('userProfile.noPostsYet')}</Text>
+            <Text style={[style.emptyText, { color: colors.muted }]}>{t('userProfile.noPostsYet')}</Text>
           </View>
         )
       }

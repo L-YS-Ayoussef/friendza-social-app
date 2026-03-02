@@ -13,50 +13,63 @@ const style = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+
   username: {
-    color: '#000',
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(16),
+    // color from tokens in UserPost.js
   },
+
   location: {
-    color: '#79869F',
     fontFamily: getFontFamily('Inter', '400'),
     fontSize: scaleFontSize(16),
     marginTop: verticalScale(5),
+    // color from tokens in UserPost.js
   },
+
   mediaContainer: {
     marginTop: 10,
     marginBottom: 10,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#E5E7EB',
+    // backgroundColor from tokens in UserPost.js (via container)
   },
+
   postImage: {
     width: '100%',
     height: 260,
     borderRadius: 10,
-    backgroundColor: '#E5E7EB',
-    marginTop: 8, // can be commented out if not needed
+    marginTop: 8, // keep if you want spacing, remove if not needed
+    // backgroundColor from tokens in PostMedia fallback / container
   },
+
   postImageSource: {
     width: '100%',
     height: verticalScale(220),
     borderRadius: horizontalScale(10),
   },
+
   userPostContainer: {
     marginTop: verticalScale(5),
     paddingBottom: verticalScale(8),
     borderBottomWidth: 1,
-    borderBottomColor: '#EFF2F6',
+    // borderBottomColor from tokens in UserPost.js
   },
+
   userPostStats: { marginLeft: horizontalScale(10), flexDirection: 'row' },
   userPostStatButton: { flexDirection: 'row' },
   userPostStatButtonRight: { flexDirection: 'row', marginLeft: horizontalScale(27) },
-  userPostStatText: { marginLeft: horizontalScale(3), color: '#79869F', marginTop: -2 },
+
+  userPostStatText: {
+    marginLeft: horizontalScale(3),
+    marginTop: -2,
+    // color from tokens in UserPost.js
+  },
+
   postMetaText: {
     marginTop: 2,
     fontSize: 12,
-    color: '#64748B',
+    // color from tokens in UserPost.js
   },
 });
 

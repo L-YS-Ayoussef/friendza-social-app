@@ -23,8 +23,12 @@ import globalStyle from '../../assets/styles/globalStyle';
 import { Routes } from '../../navigation/Routes';
 import api, { resolveMediaUrl } from '../../services/api';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const Home = ({ navigation }) => {
+  const { t } = useT();
+  const { colors } = useThemeMode();
+
   const [stories, setStories] = useState([]);
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +44,118 @@ const Home = ({ navigation }) => {
   const [activeStoryCircle, setActiveStoryCircle] = useState(null);
   const [storyIsFollowing, setStoryIsFollowing] = useState(false);
 
+  const splitName = (fullName, username) => {
+    const fallback = username || 'User';
+    const safe = (fullName || fallback).trim();
+    const parts = safe.split(' ');
+    return {
+      firstName: parts[0] || fallback,
+      lastName: parts.slice(1).join(' ') || '',
+    };
+  };
+
+  const storyByUserId = useMemo(() => {
+    const map = {};
+    stories.forEach((s, index) => {
+      if (!map[s.userId]) {
+        map[s.userId] = { story: s, index };
+      }
+    });
+    return map;
+  }, [stories]);
+
+  const storyCircles = useMemo(() => {
+    const seen = new Set();
+    const circles = [];
+
+    // reverse so the circle uses the latest story thumbnail/name
+    for (let i = stories.length - 1; i >= 0; i--) {
+      const s = stories[i];
+      if (!seen.has(s.userId)) {
+        seen.add(s.userId);
+        circles.unshift(s); // keep original visual order
+      }
+    }
+
+    return circles;
+  }, [stories]);
+
+  const loadFeed = async ({ showLoader = false } = {}) => {
+    try {
+      if (showLoader) setIsLoading(true);
+
+      const [storiesResponse, postsResponse] = await Promise.all([
+        api.get('/stories/active'),
+        api.get('/posts/feed'),
+      ]);
+
+      const storiesData = (storiesResponse.data?.stories || []).map((item) => {
+        const names = splitName(item.user?.fullName, item.user?.username);
+
+        return {
+          id: item.id,
+          firstName: names.firstName,
+          profileImage: resolveMediaUrl(item.user?.avatarUrl),
+          mediaType: item.mediaType || item.media_type || 'image',
+          storyImage: resolveMediaUrl(item.mediaUrl || item.media_url),
+          userId: item.user?.id || item.userId,
+          caption: item.caption || '',
+          username: item.user?.username || '',
+          fullName: item.user?.fullName || '',
+          createdAt: item.createdAt || item.created_at,
+        };
+      });
+
+      const postsData = (postsResponse.data?.posts || []).map((item) => {
+        const names = splitName(item.user?.fullName, item.user?.username);
+
+        return {
+          id: item.id,
+          userId: item.userId || item.user?.id,
+          firstName: names.firstName,
+          lastName: names.lastName,
+          mediaUrl: resolveMediaUrl(item.mediaUrl || item.media_url),
+          mediaType: item.mediaType || item.media_type || 'image',
+          profileImage: resolveMediaUrl(item.user?.avatarUrl),
+          location: item.location || '',
+          likes: item.likesCount || 0,
+          comments: item.commentsCount || 0,
+          bookmarks: item.bookmarksCount ?? item.savesCount ?? 0,
+          isLiked: !!item.isLiked,
+          isSaved: !!item.isSaved,
+          username: item.user?.username || '',
+          createdAt: item.createdAt || item.created_at,
+          caption: item.caption || '',
+          isFollowingAuthor: !!item.isFollowingAuthor,
+        };
+      });
+
+      setStories(storiesData);
+      setPosts(postsData);
+
+      // optional debug
+      console.log('Stories count:', storiesData.length);
+      console.log('Posts count:', postsData.length);
+    } catch (error) {
+      console.log('Home feed load error:', error?.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadFeed({ showLoader: true });
+    }, [])
+  );
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    loadFeed();
+  };
+
+  // ----- Story actions sheet handlers -----
   const openStoryActions = async (circle) => {
     setActiveStoryCircle(circle);
 
@@ -87,121 +203,7 @@ const Home = ({ navigation }) => {
     return next;
   };
 
-  const { t } = useT();
-
-  const splitName = (fullName, username) => {
-    const fallback = username || 'User';
-    const safe = (fullName || fallback).trim();
-    const parts = safe.split(' ');
-    return {
-      firstName: parts[0] || fallback,
-      lastName: parts.slice(1).join(' ') || '',
-    };
-  };
-
-  const loadFeed = async ({ showLoader = false } = {}) => {
-    try {
-      if (showLoader) setIsLoading(true);
-
-      const [storiesResponse, postsResponse] = await Promise.all([
-        api.get('/stories/active'),
-        api.get('/posts/feed'),
-      ]);
-
-      const storiesData = (storiesResponse.data?.stories || []).map((item) => {
-        const names = splitName(item.user?.fullName, item.user?.username);
-
-        return {
-          id: item.id,
-          firstName: names.firstName,
-          profileImage: resolveMediaUrl(item.user?.avatarUrl),
-          mediaType: item.mediaType || item.media_type || 'image',
-          storyImage: resolveMediaUrl(item.mediaUrl || item.media_url),
-          userId: item.user?.id || item.userId,
-          caption: item.caption || '',
-          username: item.user?.username || '',
-          fullName: item.user?.fullName || '',
-          createdAt: item.createdAt || item.created_at,
-        };
-      });
-
-      const postsData = (postsResponse.data?.posts || []).map((item) => {
-        const names = splitName(item.user?.fullName, item.user?.username);
-
-        return {
-          id: item.id,
-          userId: item.userId || item.user?.id,
-          firstName: names.firstName,
-          lastName: names.lastName,
-          mediaUrl: resolveMediaUrl(item.mediaUrl || item.media_url),
-          mediaType: item.mediaType || item.media_type || 'image',
-          profileImage: resolveMediaUrl(item.user?.avatarUrl),
-          location: item.location || '',
-          likes: item.likesCount || 0,
-          comments: item.commentsCount || 0,
-
-          bookmarks: item.bookmarksCount ?? item.savesCount ?? 0,
-
-          isLiked: !!item.isLiked,
-          isSaved: !!item.isSaved,
-          username: item.user?.username || '',
-          createdAt: item.createdAt || item.created_at,
-          caption: item.caption || '',
-          isFollowingAuthor: !!item.isFollowingAuthor,
-        };
-      });
-
-      setStories(storiesData);
-      setPosts(postsData);
-
-      // optional debug
-      console.log('Stories count:', storiesData.length);
-      console.log('Posts count:', postsData.length);
-    } catch (error) {
-      console.log('Home feed load error:', error?.response?.data || error.message);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
-
-  const storyByUserId = useMemo(() => {
-    const map = {};
-    stories.forEach((s, index) => {
-      if (!map[s.userId]) {
-        map[s.userId] = { story: s, index };
-      }
-    });
-    return map;
-  }, [stories]);
-
-  const storyCircles = useMemo(() => {
-    const seen = new Set();
-    const circles = [];
-
-    // reverse so the circle uses the latest story thumbnail/name
-    for (let i = stories.length - 1; i >= 0; i--) {
-      const s = stories[i];
-      if (!seen.has(s.userId)) {
-        seen.add(s.userId);
-        circles.unshift(s); // keep original visual order
-      }
-    }
-
-    return circles;
-  }, [stories]);
-
-  useFocusEffect(
-    useCallback(() => {
-      loadFeed({ showLoader: true });
-    }, [])
-  );
-
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    loadFeed();
-  };
-
+  // ----- Post actions sheet handlers -----
   const toggleLike = async (postId) => {
     try {
       const response = await api.post(`/posts/${postId}/like`);
@@ -275,7 +277,6 @@ const Home = ({ navigation }) => {
     const res = await api.post(`/users/${activePost.userId}/follow`);
     const next = !!res.data?.isFollowing;
 
-    // update all posts by that author so sheets stay correct everywhere
     setPosts((prev) =>
       prev.map((p) => (p.userId === activePost.userId ? { ...p, isFollowingAuthor: next } : p))
     );
@@ -294,9 +295,12 @@ const Home = ({ navigation }) => {
   if (isLoading) {
     return (
       <SafeAreaProvider>
-        <SafeAreaView edges={['top', 'right', 'left', 'bottom']} style={[globalStyle.backgroundWhite, globalStyle.flex]}>
+        <SafeAreaView
+          edges={['top', 'right', 'left', 'bottom']}
+          style={[globalStyle.flex, { backgroundColor: colors.background }]}
+        >
           <View style={[globalStyle.flex, { justifyContent: 'center', alignItems: 'center' }]}>
-            <ActivityIndicator size="large" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -305,50 +309,75 @@ const Home = ({ navigation }) => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'right', 'left', 'bottom']} style={[globalStyle.backgroundWhite, globalStyle.flex]}>
+      <SafeAreaView
+        edges={['top', 'right', 'left', 'bottom']}
+        style={[globalStyle.flex, { backgroundColor: colors.background }]}
+      >
         <FlatList
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
           ListHeaderComponent={
             <>
-              <View style={style.topBar}>
+              <View style={[style.topBar, { backgroundColor: colors.background }]}>
                 <TouchableOpacity style={style.topIconButton} onPress={() => navigation.navigate(Routes.CreatePost)}>
-                  <FontAwesomeIcon icon={faPlus} size={18} color="#111827" />
+                  <FontAwesomeIcon icon={faPlus} size={18} color={colors.text} />
                 </TouchableOpacity>
 
-                <Text style={style.appName}>Friendza</Text>
+                <Text style={[style.appName, { color: colors.text }]}>Friendza</Text>
 
                 <TouchableOpacity style={style.topIconButton} onPress={() => navigation.navigate(Routes.RecentLikes)}>
-                  <FontAwesomeIcon icon={faHeart} size={18} color="#111827" />
+                  <FontAwesomeIcon icon={faHeart} size={18} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
-              <View style={style.userStoryContainer}>
+              <View style={[style.userStoryContainer, { backgroundColor: colors.background }]}>
                 <FlatList
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   data={storyCircles}
                   keyExtractor={(item) => String(item.userId)}
                   ListHeaderComponent={
-                    <TouchableOpacity style={style.addStoryContainer} onPress={() => navigation.navigate(Routes.CreateStory)}>
-                      <View style={style.addStoryCircle}>
-                        <FontAwesomeIcon icon={faPlus} size={16} color="#0150EC" />
+                    <TouchableOpacity
+                      style={style.addStoryContainer}
+                      onPress={() => navigation.navigate(Routes.CreateStory)}
+                    >
+                      <View
+                        style={[
+                          style.addStoryCircle,
+                          {
+                            backgroundColor: colors.surface2,
+                            borderColor: colors.primary,
+                            borderWidth: 1,
+                          },
+                        ]}
+                      >
+                        <FontAwesomeIcon icon={faPlus} size={16} color={colors.primary} />
                       </View>
-                      <Text style={style.addStoryText}>{t('story.addStory')}</Text>
+                      <Text style={[style.addStoryText, { color: colors.subText }]}>{t('story.addStory')}</Text>
                     </TouchableOpacity>
                   }
                   ListEmptyComponent={
-                    <Text style={style.emptyText}>{t('story.noActiveStoriesYet')}</Text>
+                    <Text style={[style.emptyText, { color: colors.muted }]}>
+                      {t('story.noActiveStoriesYet')}
+                    </Text>
                   }
-                  renderItem={({ item, index }) => (
+                  renderItem={({ item }) => (
                     <UserStory
                       firstName={item.firstName}
                       profileImage={item.profileImage}
+                      showRing
                       onPress={() => {
                         const firstStoryIndex = storyByUserId[item.userId]?.index ?? 0;
 
                         navigation.navigate(Routes.StoryViewer, {
-                          stories, // full stories array (all stories)
-                          startIndex: firstStoryIndex, // start from this user's first story
+                          stories,
+                          startIndex: firstStoryIndex,
                         });
                       }}
                       onLongPress={() => openStoryActions(item)}
@@ -362,8 +391,10 @@ const Home = ({ navigation }) => {
           keyExtractor={(item) => String(item.id)}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={style.emptyContainer}>
-              <Text style={style.emptyText}>No posts yet. Tap + to create your first post.</Text>
+            <View style={[style.emptyContainer, { backgroundColor: colors.background }]}>
+              <Text style={[style.emptyText, { color: colors.subText }]}>
+                No posts yet. Tap + to create your first post.
+              </Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -435,7 +466,7 @@ const Home = ({ navigation }) => {
           onToggleFollow={toggleFollowStoryUser}
           showToast={(msg) => toastRef.current?.show(msg)}
         />
-        
+
         <BottomToast ref={toastRef} />
       </SafeAreaView>
     </SafeAreaProvider>

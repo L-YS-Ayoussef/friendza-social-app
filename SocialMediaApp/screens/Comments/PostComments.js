@@ -29,7 +29,7 @@ const PostComments = ({ route }) => {
 
   const { t, isRTL } = useT();
   const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
-  
+
   const loadComments = async () => {
     try {
       setIsLoading(true);
@@ -67,19 +67,16 @@ const PostComments = ({ route }) => {
     <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
       {isLoading ? (
         <View style={style.centered}>
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
-        <KeyboardAvoidingView
-          style={style.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        <KeyboardAvoidingView style={style.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <FlatList
             data={comments}
             keyExtractor={(item) => String(item.id)}
             contentContainerStyle={style.listContent}
             ListEmptyComponent={
-              <Text style={[style.emptyText, { color: colors.subText }]}>{t('post.noComments')}</Text>
+              <Text style={[style.emptyText, { color: colors.muted }]}>{t('post.noComments')}</Text>
             }
             renderItem={({ item }) => (
               <View style={[style.commentRow, { borderBottomColor: colors.border }]}>
@@ -101,20 +98,23 @@ const PostComments = ({ route }) => {
             <TextInput
               style={[
                 style.input,
-                { color: colors.text, borderColor: colors.border, backgroundColor: colors.card },
+                { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface1 },
                 rtlInput,
               ]}
               placeholder={t('post.writeCommentPlaceholder')}
-              placeholderTextColor={colors.subText}
+              placeholderTextColor={colors.muted}
               value={commentText}
               onChangeText={setCommentText}
+              selectionColor={colors.primary}
             />
             <TouchableOpacity
               onPress={onSendComment}
               style={[style.sendButton, { backgroundColor: colors.primary }, isSending && { opacity: 0.6 }]}
               disabled={isSending}
             >
-              <Text style={style.sendButtonText}>{isSending ? '...' : t('common.send')}</Text>
+              <Text style={[style.sendButtonText, { color: colors.onPrimary }]}>
+                {isSending ? '...' : t('common.send')}
+              </Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

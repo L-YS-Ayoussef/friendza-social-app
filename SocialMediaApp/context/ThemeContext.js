@@ -1,34 +1,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { brand, lightTokens, darkTokens } from '../theme/tokens';
 
 const THEME_KEY = 'friendza_theme_mode';
 
 const ThemeContext = createContext(null);
-
-const palettes = {
-  light: {
-    mode: 'light',
-    background: '#FFFFFF',
-    card: '#F8FAFC',
-    text: '#111827',
-    subText: '#64748B',
-    border: '#E2E8F0',
-    primary: '#0150EC',
-    primarySoft: '#EFF6FF',
-    danger: '#EF4444',
-  },
-  dark: {
-    mode: 'dark',
-    background: '#0F172A',
-    card: '#1E293B',
-    text: '#F8FAFC',
-    subText: '#CBD5E1',
-    border: '#334155',
-    primary: '#60A5FA',
-    primarySoft: '#1E3A8A',
-    danger: '#F87171',
-  },
-};
 
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState('light');
@@ -58,15 +34,19 @@ export const ThemeProvider = ({ children }) => {
     await setThemeMode(next);
   };
 
+  // ✅ Use your new token palettes
+  const colors = mode === 'dark' ? darkTokens : lightTokens;
+
   const value = useMemo(
     () => ({
       mode,
-      colors: palettes[mode],
+      colors,
+      brand, // ✅ exposes gradient + accents
       setThemeMode,
       toggleTheme,
       isThemeReady,
     }),
-    [mode, isThemeReady]
+    [mode, isThemeReady, colors]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

@@ -1,5 +1,5 @@
-import {StyleSheet} from 'react-native';
-import {getFontFamily} from '../../assets/fonts/helper';
+import { StyleSheet } from 'react-native';
+import { getFontFamily } from '../../assets/fonts/helper';
 import { horizontalScale, scaleFontSize, verticalScale } from '../../assets/styles/scaling';
 
 const style = StyleSheet.create({
@@ -9,9 +9,9 @@ const style = StyleSheet.create({
   firstName: {
     fontFamily: getFontFamily('Inter', '500'),
     fontSize: scaleFontSize(14),
-    color: '#022150',
     marginTop: verticalScale(8),
     textAlign: 'center',
+    // color from tokens in UserStory.js
   },
 });
 

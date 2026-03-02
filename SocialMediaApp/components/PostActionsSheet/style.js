@@ -5,7 +5,7 @@ import { getFontFamily } from '../../assets/fonts/helper';
 export default StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    // backgroundColor is applied dynamically from Theme tokens (colors.scrim)
   },
   sheet: {
     position: 'absolute',
@@ -15,28 +15,29 @@ export default StyleSheet.create({
     paddingTop: verticalScale(10),
     paddingBottom: verticalScale(18),
     paddingHorizontal: horizontalScale(16),
-    backgroundColor: '#FFFFFF',
+    // backgroundColor is applied dynamically from Theme tokens (colors.surface2)
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
+    borderTopWidth: 1, // border color applied dynamically (colors.border)
   },
   sheetHandle: {
     alignSelf: 'center',
     width: 48,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#E5E7EB',
+    // backgroundColor is applied dynamically from Theme tokens (colors.border)
     marginBottom: verticalScale(10),
   },
   title: {
     fontFamily: getFontFamily('Inter', '700'),
     fontSize: scaleFontSize(14),
-    color: '#111827',
+    // color is applied dynamically from Theme tokens (colors.text)
     marginBottom: verticalScale(10),
   },
   row: {
     paddingVertical: verticalScale(14),
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    // borderBottomColor applied dynamically (colors.border)
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -50,20 +51,20 @@ export default StyleSheet.create({
   rowText: {
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(13),
-    color: '#111827',
+    // color applied dynamically (colors.text)
   },
   rowTextDanger: {
-    color: '#EF4444',
+    // danger color is handled dynamically in component (colors.error)
   },
   cancelBtn: {
     marginTop: verticalScale(12),
     paddingVertical: verticalScale(14),
     borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    // backgroundColor applied dynamically (colors.surface1)
     alignItems: 'center',
   },
   cancelText: {
     fontFamily: getFontFamily('Inter', '700'),
-    color: '#111827',
+    // color applied dynamically (colors.text)
   },
 });

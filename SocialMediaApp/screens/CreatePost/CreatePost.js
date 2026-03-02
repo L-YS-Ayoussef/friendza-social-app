@@ -17,6 +17,7 @@ import style from '../CreateContent/style';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const CreatePost = ({ navigation, route }) => {
   const { mode, postId, post } = route.params || {};
@@ -31,9 +32,10 @@ const CreatePost = ({ navigation, route }) => {
   const [existingMediaType, setExistingMediaType] = useState('image');
 
   const { t, isRTL } = useT();
+  const { colors } = useThemeMode();
+
   const rtlText = { textAlign: isRTL ? 'right' : 'left' };
   const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
-  const rtlPasswordInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: 'ltr' };
 
   useEffect(() => {
     if (!isEdit || !post) return;
@@ -84,7 +86,6 @@ const CreatePost = ({ navigation, route }) => {
       setIsSubmitting(true);
 
       if (isEdit) {
-        // edit: allow changing caption/location only, or replace media
         if (selectedMedia?.uri) {
           const formData = new FormData();
           const isVideo = selectedMedia.type?.startsWith('video/');
@@ -114,7 +115,6 @@ const CreatePost = ({ navigation, route }) => {
         return;
       }
 
-      // create (original logic)
       if (!selectedMedia?.uri) {
         Alert.alert(t('auth.missingDataTitle'), t('post.missingMedia'));
         return;
@@ -150,23 +150,40 @@ const CreatePost = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={style.container}>
+    <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={style.content} keyboardShouldPersistTaps="handled">
-        <Text style={style.title}>{isEdit ? t('common.edit') : t('nav.createPost')}</Text>
-        <Text style={style.subtitle}>{t('post.createPostSubtitle')}</Text>
+        <Text style={[style.title, rtlText, { color: colors.text }]}>
+          {isEdit ? t('common.edit') : t('nav.createPost')}
+        </Text>
+        <Text style={[style.subtitle, rtlText, { color: colors.subText }]}>
+          {t('post.createPostSubtitle')}
+        </Text>
 
-        <Text style={style.label}>{t('post.postMediaLabel')}</Text>
+        <Text style={[style.label, rtlText, { color: colors.subText }]}>{t('post.postMediaLabel')}</Text>
+
         <View style={style.sourceRow}>
-          <TouchableOpacity style={style.sourceIconButton} onPress={onOpenCamera}>
-            <FontAwesomeIcon icon={faCamera} size={18} color="#111827" />
+          <TouchableOpacity
+            style={[
+              style.sourceIconButton,
+              { backgroundColor: colors.surface2, borderColor: colors.border },
+            ]}
+            onPress={onOpenCamera}
+          >
+            <FontAwesomeIcon icon={faCamera} size={18} color={colors.icon} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[style.sourceIconButton, { marginLeft: 10 }]} onPress={onPickFromGallery}>
-            <FontAwesomeIcon icon={faImages} size={18} color="#111827" />
+          <TouchableOpacity
+            style={[
+              style.sourceIconButton,
+              { marginLeft: 10, backgroundColor: colors.surface2, borderColor: colors.border },
+            ]}
+            onPress={onPickFromGallery}
+          >
+            <FontAwesomeIcon icon={faImages} size={18} color={colors.icon} />
           </TouchableOpacity>
         </View>
 
-        <View style={style.previewBox}>
+        <View style={[style.previewBox, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
           {selectedMedia?.uri ? (
             selectedMedia.type?.startsWith('video/') ? (
               <Video source={{ uri: selectedMedia.uri }} style={style.previewImage} resizeMode="cover" paused />
@@ -180,35 +197,50 @@ const CreatePost = ({ navigation, route }) => {
               <Image source={{ uri: existingMediaUrl }} style={style.previewImage} resizeMode="cover" />
             )
           ) : (
-            <Text style={style.previewPlaceholder}>{t('post.noMediaSelected')}</Text>
+            <Text style={[style.previewPlaceholder, { color: colors.muted }]}>{t('post.noMediaSelected')}</Text>
           )}
         </View>
 
-        <Text style={style.label}>{t('post.locationOptional')}</Text>
+        <Text style={[style.label, rtlText, { color: colors.subText }]}>{t('post.locationOptional')}</Text>
         <TextInput
-          style={style.input}
+          style={[
+            style.input,
+            rtlInput,
+            { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+          ]}
           placeholder={t('post.locationPlaceholder')}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.muted}
           value={location}
           onChangeText={setLocation}
+          selectionColor={colors.primary}
         />
 
-        <Text style={style.label}>{t('post.captionOptional')}</Text>
+        <Text style={[style.label, rtlText, { color: colors.subText }]}>{t('post.captionOptional')}</Text>
         <TextInput
-          style={[style.input, style.textArea]}
+          style={[
+            style.input,
+            style.textArea,
+            rtlInput,
+            { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+          ]}
           placeholder={t('post.writeSomething')}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.muted}
           multiline
           value={caption}
           onChangeText={setCaption}
+          selectionColor={colors.primary}
         />
 
         <TouchableOpacity
           onPress={onSubmit}
-          style={[style.button, isSubmitting && style.buttonDisabled]}
+          style={[style.button, { backgroundColor: colors.primary }, isSubmitting && style.buttonDisabled]}
           disabled={isSubmitting}
         >
-          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>{t('post.publishPost')}</Text>}
+          {isSubmitting ? (
+            <ActivityIndicator color={colors.onPrimary} />
+          ) : (
+            <Text style={[style.buttonText, { color: colors.onPrimary }]}>{t('post.publishPost')}</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

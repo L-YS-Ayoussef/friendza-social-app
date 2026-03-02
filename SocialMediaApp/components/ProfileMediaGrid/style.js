@@ -4,6 +4,8 @@ const size = Dimensions.get('window').width / 3;
 
 export default StyleSheet.create({
   centered: { paddingVertical: 30, alignItems: 'center' },
+  emptyText: { textAlign: 'center' },
+
   grid: { paddingTop: 6 },
   cell: {
     width: size,
@@ -13,7 +15,7 @@ export default StyleSheet.create({
   thumb: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#ddd',
+    // backgroundColor is set from tokens in component
   },
   overlay: {
     position: 'absolute',
@@ -21,7 +23,7 @@ export default StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.12)',
+    // backgroundColor set from tokens in component (colors.scrim)
     alignItems: 'center',
     justifyContent: 'center',
   },

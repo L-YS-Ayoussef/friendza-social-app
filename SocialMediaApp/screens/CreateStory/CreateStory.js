@@ -17,6 +17,7 @@ import style from '../CreateContent/style';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faCamera, faImages } from '@fortawesome/free-solid-svg-icons';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const CreateStory = ({ navigation }) => {
   const [selectedMedia, setSelectedImage] = useState(null);
@@ -24,9 +25,11 @@ const CreateStory = ({ navigation }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { t, isRTL } = useT();
+  const { colors } = useThemeMode();
+
   const rtlText = { textAlign: isRTL ? 'right' : 'left' };
   const rtlInput = { textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' };
-    
+
   const onPickFromGallery = async () => {
     const result = await launchImageLibrary({
       mediaType: 'mixed',
@@ -87,7 +90,7 @@ const CreateStory = ({ navigation }) => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert(t('common.success'), t('post.addedToStory')); 
+      Alert.alert(t('common.success'), t('post.addedToStory'));
       navigation.goBack();
     } catch (error) {
       const message = error?.response?.data?.message || t('post.failedCreateStory');
@@ -98,60 +101,69 @@ const CreateStory = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={style.container}>
+    <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={style.content} keyboardShouldPersistTaps="handled">
-        <Text style={style.title}>{t('post.createStoryTitle')}</Text>
-        <Text style={style.subtitle}>{t('post.createStorySubtitle')}</Text>
+        <Text style={[style.title, rtlText, { color: colors.text }]}>{t('post.createStoryTitle')}</Text>
+        <Text style={[style.subtitle, rtlText, { color: colors.subText }]}>{t('post.createStorySubtitle')}</Text>
 
-        <Text style={style.label}>{t('post.storyMediaLabel')}</Text>
+        <Text style={[style.label, rtlText, { color: colors.subText }]}>{t('post.storyMediaLabel')}</Text>
         <View style={style.sourceRow}>
-          <TouchableOpacity style={style.sourceIconButton} onPress={onOpenCamera}>
-            <FontAwesomeIcon icon={faCamera} size={18} color="#111827" />
+          <TouchableOpacity
+            style={[style.sourceIconButton, { backgroundColor: colors.surface2, borderColor: colors.border }]}
+            onPress={onOpenCamera}
+          >
+            <FontAwesomeIcon icon={faCamera} size={18} color={colors.icon} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[style.sourceIconButton, { marginLeft: 10 }]} onPress={onPickFromGallery}>
-            <FontAwesomeIcon icon={faImages} size={18} color="#111827" />
+          <TouchableOpacity
+            style={[
+              style.sourceIconButton,
+              { marginLeft: 10, backgroundColor: colors.surface2, borderColor: colors.border },
+            ]}
+            onPress={onPickFromGallery}
+          >
+            <FontAwesomeIcon icon={faImages} size={18} color={colors.icon} />
           </TouchableOpacity>
         </View>
 
-        <View style={style.previewBox}>
+        <View style={[style.previewBox, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
           {selectedMedia?.uri ? (
             selectedMedia.type?.startsWith('video/') ? (
-              <Video
-                source={{ uri: selectedMedia.uri }}
-                style={style.previewImage}
-                resizeMode="cover"
-                paused={true} // preview is static for now
-              />
+              <Video source={{ uri: selectedMedia.uri }} style={style.previewImage} resizeMode="cover" paused />
             ) : (
-              <Image
-                source={{ uri: selectedMedia.uri }}
-                style={style.previewImage}
-                resizeMode="cover"
-              />
+              <Image source={{ uri: selectedMedia.uri }} style={style.previewImage} resizeMode="cover" />
             )
           ) : (
-            <Text style={style.previewPlaceholder}>{t('post.noMediaSelected')}</Text>
-          )
-          }
+            <Text style={[style.previewPlaceholder, { color: colors.muted }]}>{t('post.noMediaSelected')}</Text>
+          )}
         </View>
 
-        <Text style={style.label}>{t('post.captionOptional')}</Text>
+        <Text style={[style.label, rtlText, { color: colors.subText }]}>{t('post.captionOptional')}</Text>
         <TextInput
-          style={[style.input, style.textArea]}
+          style={[
+            style.input,
+            style.textArea,
+            rtlInput,
+            { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+          ]}
           placeholder={t('post.writeSomething')}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={colors.muted}
           multiline
           value={caption}
           onChangeText={setCaption}
+          selectionColor={colors.primary}
         />
 
         <TouchableOpacity
           onPress={onCreateStory}
-          style={[style.button, isSubmitting && style.buttonDisabled]}
+          style={[style.button, { backgroundColor: colors.primary }, isSubmitting && style.buttonDisabled]}
           disabled={isSubmitting}
         >
-          {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={style.buttonText}>{t('post.publishStory')}</Text>}
+          {isSubmitting ? (
+            <ActivityIndicator color={colors.onPrimary} />
+          ) : (
+            <Text style={[style.buttonText, { color: colors.onPrimary }]}>{t('post.publishStory')}</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

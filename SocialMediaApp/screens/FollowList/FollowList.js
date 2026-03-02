@@ -5,14 +5,16 @@ import UserProfileImage from '../../components/UserProfileImage/UserProfileImage
 import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const FollowList = ({ route, navigation }) => {
   const { userId, type } = route.params || {}; // type: 'followers' | 'following'
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { t } = useT();
-  
+  const { t, isRTL } = useT();
+  const { colors } = useThemeMode();
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -32,28 +34,43 @@ const FollowList = ({ route, navigation }) => {
     navigation.setOptions({
       title: type === 'followers' ? t('follow.followers') : t('follow.following'),
     });
-  }, [navigation, type]);
+  }, [navigation, type, t]);
 
-  if (isLoading) return <View style={{ flex:1,justifyContent:'center',alignItems:'center' }}><ActivityIndicator /></View>;
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <FlatList
+      style={{ backgroundColor: colors.background }}
       data={users}
       keyExtractor={(item) => String(item.id)}
       contentContainerStyle={{ padding: 12 }}
-      ListEmptyComponent={<Text>{t('post.noUsers')}</Text>}
+      ListEmptyComponent={<Text style={{ color: colors.muted, textAlign: 'center' }}>{t('post.noUsers')}</Text>}
       renderItem={({ item }) => (
         <TouchableOpacity
           onPress={() => navigation.navigate(Routes.UserProfile, { userId: item.id })}
-          style={{ flexDirection:'row', alignItems:'center', paddingVertical:10 }}
+          style={{
+            flexDirection: isRTL ? 'row-reverse' : 'row',
+            alignItems: 'center',
+            paddingVertical: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
         >
           <UserProfileImage
             imageDimensions={horizontalScale(46)}
             profileImage={resolveMediaUrl(item.avatar_url || item.avatarUrl)}
           />
-          <View style={{ marginLeft: 10 }}>
-            <Text>{item.full_name || item.fullName || item.username}</Text>
-            <Text style={{ color: '#64748B' }}>@{item.username}</Text>
+          <View style={{ marginLeft: isRTL ? 0 : 10, marginRight: isRTL ? 10 : 0 }}>
+            <Text style={{ color: colors.text }}>
+              {item.full_name || item.fullName || item.username}
+            </Text>
+            <Text style={{ color: colors.subText }}>@{item.username}</Text>
           </View>
         </TouchableOpacity>
       )}

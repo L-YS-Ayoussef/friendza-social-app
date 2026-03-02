@@ -21,6 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const SHEET_HEIGHT = 340;
 
@@ -49,6 +50,7 @@ const PostActionsSheet = ({
   const [busyKey, setBusyKey] = useState(null);
   const anim = useRef(new Animated.Value(0)).current;
   const { t, isRTL  } = useT();
+  const { colors } = useThemeMode();
 
   useEffect(() => {
     if (visible) {
@@ -117,7 +119,7 @@ const PostActionsSheet = ({
     }
 
     if (actionKey === 'delete') {
-      Alert.alert('Delete post', t('post.deletePostConfirm'), [
+      Alert.alert(t('post.deletePostTitle'), t('post.deletePostConfirm'), [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('post.deletePostTitle'),
@@ -164,31 +166,44 @@ const PostActionsSheet = ({
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={style.backdrop} />
+        <View style={[style.backdrop, { backgroundColor: colors.scrim }]} />
       </TouchableWithoutFeedback>
 
-      <Animated.View style={[style.sheet, { transform: [{ translateY }] }]}>
-        <View style={style.sheetHandle} />
-        <Text style={style.title}>{t('post.actionsTitle')}</Text>
+      <Animated.View
+        style={[
+          style.sheet,
+          { transform: [{ translateY }], backgroundColor: colors.surface2, borderTopColor: colors.border },
+        ]}
+      >
+        <View style={[style.sheetHandle, { backgroundColor: colors.border }]} />
+        <Text style={[style.title, { color: colors.text }]}>{t('post.actionsTitle')}</Text>
 
         {actions.map((a) => (
           <TouchableOpacity
             key={a.key}
-            style={[style.row, a.danger && style.rowDanger]}
+            style={[
+              style.row,
+              { borderBottomColor: colors.border },
+              a.danger && style.rowDanger,
+            ]}
             onPress={() => handlePress(a.key)}
             disabled={!!busyKey}
           >
             <View style={[style.rowLeft, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-              <FontAwesomeIcon icon={a.icon} size={18} color={a.danger ? '#EF4444' : '#111827'} />
-              <Text style={[style.rowText, a.danger && style.rowTextDanger]}>{a.label}</Text>
+              <FontAwesomeIcon icon={a.icon} size={18} color={a.danger ? colors.error : colors.icon} />
+              <Text style={[style.rowText, { color: colors.text }, a.danger && style.rowTextDanger]}>{a.label}</Text>
             </View>
 
             {busyKey === a.key ? <ActivityIndicator /> : null}
           </TouchableOpacity>
         ))}
 
-        <TouchableOpacity style={style.cancelBtn} onPress={onClose} disabled={!!busyKey}>
-          <Text style={style.cancelText}>{t('common.cancel')}</Text>
+        <TouchableOpacity
+          style={[style.cancelBtn, { backgroundColor: colors.surface1 }]}
+          onPress={onClose}
+          disabled={!!busyKey}
+        >
+          <Text style={[style.cancelText, { color: colors.text }]}>{t('common.cancel')}</Text>
         </TouchableOpacity>
       </Animated.View>
     </Modal>

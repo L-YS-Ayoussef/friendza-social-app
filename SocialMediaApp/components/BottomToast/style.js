@@ -11,10 +11,10 @@ export default StyleSheet.create({
     paddingVertical: verticalScale(12),
     paddingHorizontal: horizontalScale(14),
     borderRadius: 12,
-    backgroundColor: '#111827',
+    // backgroundColor applied dynamically from Theme tokens (colors.text)
   },
   toastText: {
-    color: '#FFFFFF',
+    // color applied dynamically from Theme tokens (colors.background)
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(13),
     textAlign: 'center',

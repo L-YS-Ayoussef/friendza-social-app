@@ -15,6 +15,7 @@ const style = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: verticalScale(10),
     borderBottomWidth: 1,
+    // borderBottomColor from tokens in component
   },
   commentTextBlock: {
     flex: 1,
@@ -44,6 +45,7 @@ const style = StyleSheet.create({
     paddingVertical: verticalScale(10),
     flexDirection: 'row',
     alignItems: 'center',
+    // borderTopColor/backgroundColor from tokens in component
   },
   input: {
     flex: 1,
@@ -53,16 +55,18 @@ const style = StyleSheet.create({
     paddingVertical: verticalScale(10),
     marginRight: horizontalScale(8),
     fontFamily: getFontFamily('Inter', '400'),
+    // colors from tokens in component
   },
   sendButton: {
     borderRadius: 10,
     paddingHorizontal: horizontalScale(14),
     paddingVertical: verticalScale(10),
+    // backgroundColor from tokens in component
   },
   sendButtonText: {
-    color: '#fff',
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(13),
+    // color from tokens in component
   },
 });
 

@@ -7,18 +7,19 @@ import UserProfileImage from '../../components/UserProfileImage/UserProfileImage
 import { horizontalScale } from '../../assets/styles/scaling';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const Suggestions = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const { t } = useT();
-  
+  const { colors } = useThemeMode();
+
   const loadSuggestions = async () => {
     try {
       setIsLoading(true);
       const response = await api.get('/users/suggestions');
-
       setUsers(response.data?.users || []);
     } catch (error) {
       console.log('Suggestions error:', error?.response?.data || error.message);
@@ -35,34 +36,34 @@ const Suggestions = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={style.centered}>
-        <ActivityIndicator size="large" />
+      <View style={[style.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={style.container}>
-      <Text style={style.title}>{t('suggestions.title')}</Text>
+    <View style={[style.container, { backgroundColor: colors.background }]}>
+      <Text style={[style.title, { color: colors.text }]}>{t('suggestions.title')}</Text>
 
       <FlatList
         data={users}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={style.emptyText}>{t('suggestions.empty')}</Text>}
+        ListEmptyComponent={<Text style={[style.emptyText, { color: colors.muted }]}>{t('suggestions.empty')}</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={style.card}
+            style={[
+              style.card,
+              { backgroundColor: colors.surface1, borderColor: colors.border },
+            ]}
             onPress={() => navigation.navigate(Routes.UserProfile, { userId: item.id })}
           >
-            <UserProfileImage
-              imageDimensions={horizontalScale(50)}
-              profileImage={resolveMediaUrl(item.avatarUrl)}
-            />
+            <UserProfileImage imageDimensions={horizontalScale(50)} profileImage={resolveMediaUrl(item.avatarUrl)} />
             <View style={style.textBlock}>
-              <Text style={style.name}>{item.fullName || item.username}</Text>
-              <Text style={style.username}>@{item.username}</Text>
+              <Text style={[style.name, { color: colors.text }]}>{item.fullName || item.username}</Text>
+              <Text style={[style.username, { color: colors.subText }]}>@{item.username}</Text>
             </View>
-            <Text style={style.viewText}>{t('post.view')}</Text>
+            <Text style={[style.viewText, { color: colors.primary }]}>{t('post.view')}</Text>
           </TouchableOpacity>
         )}
       />

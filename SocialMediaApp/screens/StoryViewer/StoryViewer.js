@@ -1,12 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
   ImageBackground,
   TouchableOpacity,
   Animated,
-  StatusBar,
-  Image 
+  Image,
 } from 'react-native';
 import Video from 'react-native-video';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useAppPreferences } from '../../context/AppPreferencesContext';
 import style from './style';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const STORY_DURATION = 5000;
 
@@ -27,9 +27,18 @@ const formatStoryCreationTime = (value) => {
   });
 };
 
+const softenScrim = (rgbaStr, alpha = 0.18) => {
+  if (typeof rgbaStr !== 'string') return `rgba(0,0,0,${alpha})`;
+  // expected: rgba(r,g,b,a)
+  const m = rgbaStr.match(/^rgba\((\s*\d+\s*),(\s*\d+\s*),(\s*\d+\s*),\s*[\d.]+\s*\)$/i);
+  if (!m) return `rgba(0,0,0,${alpha})`;
+  return `rgba(${m[1]},${m[2]},${m[3]},${alpha})`;
+};
+
 const StoryViewer = ({ route, navigation }) => {
   const { stories = [], startIndex = 0 } = route.params || {};
   const { autoPlayStories } = useAppPreferences();
+  const { colors } = useThemeMode();
 
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -45,7 +54,7 @@ const StoryViewer = ({ route, navigation }) => {
   useEffect(() => {
     progressAnim.setValue(0);
 
-    if (!autoPlayStories) return; // ✅ no progress / no auto-advance
+    if (!autoPlayStories) return;
 
     const anim = Animated.timing(progressAnim, {
       toValue: 1,
@@ -87,6 +96,8 @@ const StoryViewer = ({ route, navigation }) => {
     outputRange: ['0%', '100%'],
   });
 
+  const overlayColor = useMemo(() => softenScrim(colors.scrim, 0.18), [colors.scrim]);
+
   return (
     <View style={style.container}>
       {/* Media fills the whole screen */}
@@ -110,8 +121,8 @@ const StoryViewer = ({ route, navigation }) => {
         />
       )}
 
-      {/* Dark overlay */}
-      <View style={style.overlay} />
+      {/* Overlay (token-based scrim, softened) */}
+      <View style={[style.overlay, { backgroundColor: overlayColor }]} />
 
       {/* Top UI + bottom caption */}
       <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={style.safeOverlay}>
@@ -135,7 +146,7 @@ const StoryViewer = ({ route, navigation }) => {
                 source={
                   currentStory.profileImage
                     ? { uri: currentStory.profileImage }
-                    : require('../../assets/images/default_post.png')
+                    : require('../../assets/images/default_profile.png')
                 }
                 style={style.headerAvatar}
               />
@@ -146,6 +157,7 @@ const StoryViewer = ({ route, navigation }) => {
                 </Text>
               </View>
             </View>
+
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <FontAwesomeIcon icon={faTimes} size={20} color="#FFFFFF" />
             </TouchableOpacity>
@@ -159,7 +171,7 @@ const StoryViewer = ({ route, navigation }) => {
         )}
       </SafeAreaView>
 
-      {/* Tap zones should be on top of media, but behind header/caption */}
+      {/* Tap zones */}
       <View style={style.tapLayer} pointerEvents="box-none">
         <TouchableOpacity style={style.leftZone} activeOpacity={1} onPress={goPrev} />
         <TouchableOpacity style={style.rightZone} activeOpacity={1} onPress={goNext} />

@@ -17,9 +17,11 @@ import style from './style';
 import { horizontalScale, scaleFontSize } from '../../assets/styles/scaling';
 import PostMedia from '../PostMedia/PostMedia';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const UserPost = (props) => {
   const { t } = useT();
+  const { colors } = useThemeMode();
 
   const formatRelativePostTime = (value) => {
     if (!value) return '';
@@ -45,7 +47,7 @@ const UserPost = (props) => {
   };
 
   return (
-    <View style={style.userPostContainer}>
+    <View style={[style.userPostContainer, { backgroundColor: colors.surface1, borderColor: colors.border }]}>
       <View style={style.user}>
         <View style={style.userContainer}>
           <TouchableOpacity onPress={props.onPressAvatar}>
@@ -54,17 +56,17 @@ const UserPost = (props) => {
 
           <View style={style.userTextContainer}>
             <TouchableOpacity onPress={props.onPressUsername} style={style.userNameContainer}>
-              <Text style={style.username}>{props.firstName} {props.lastName}</Text>
+              <Text style={[style.username, { color: colors.text }]}>{props.firstName} {props.lastName}</Text>
             </TouchableOpacity>
-            <Text style={style.postMetaText}>
-              {!!props.location && <Text style={style.location}>{props.location}</Text>}
+            <Text style={[style.postMetaText, { color: colors.muted }]}>
+              {!!props.location && <Text style={[style.location, { color: colors.subText }]}>{props.location}</Text>}
               {formatRelativePostTime(props.createdAt)}
             </Text>
           </View>
         </View>
 
         <TouchableOpacity onPress={props.onOpenActions} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <FontAwesomeIcon icon={faEllipsisH} size={scaleFontSize(20)} color={'#79869F'} />
+          <FontAwesomeIcon icon={faEllipsisH} size={scaleFontSize(20)} color={colors.icon} />
         </TouchableOpacity>
       </View>
 
@@ -81,7 +83,7 @@ const UserPost = (props) => {
           <TouchableOpacity onPress={props.onToggleLike} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <FontAwesomeIcon
               icon={props.isLiked ? faHeartSolid : faHeartRegular}
-              color={props.isLiked ? '#EF4444' : '#79869F'}
+              color={props.isLiked ? colors.tertiary : colors.icon}
             />
           </TouchableOpacity>
 
@@ -90,21 +92,21 @@ const UserPost = (props) => {
             disabled={!props.onOpenLikes}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={style.userPostStatText}>{props.likes}</Text>
+            <Text style={[style.userPostStatText, { color: colors.subText }]}>{props.likes}</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={style.userPostStatButtonRight} onPress={props.onOpenComments}>
-          <FontAwesomeIcon icon={faMessage} color={'#79869F'} />
-          <Text style={style.userPostStatText}>{props.comments}</Text>
+          <FontAwesomeIcon icon={faMessage} color={colors.icon} />
+          <Text style={[style.userPostStatText, { color: colors.subText }]}>{props.comments}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={style.userPostStatButtonRight} onPress={props.onToggleSave}>
           <FontAwesomeIcon
             icon={props.isSaved ? faBookmarkSolid : faBookmarkRegular}
-            color={props.isSaved ? '#111827' : '#79869F'}
+            color={props.isSaved ? colors.text : colors.icon}
           />
-          <Text style={style.userPostStatText}>{props.bookmarks}</Text>
+          <Text style={[style.userPostStatText, { color: colors.subText }]}>{props.bookmarks}</Text>
         </TouchableOpacity>
       </View>
     </View>

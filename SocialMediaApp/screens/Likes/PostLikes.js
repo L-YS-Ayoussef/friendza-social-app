@@ -7,17 +7,19 @@ import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const PostLikes = ({ route, navigation }) => {
   const { postId } = route.params || {};
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const { t } = useT();
+  const { colors } = useThemeMode();
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: t('nav.likes') });
-  }, [navigation]);
+  }, [navigation, t]);
 
   useEffect(() => {
     const load = async () => {
@@ -38,21 +40,21 @@ const PostLikes = ({ route, navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={style.centered}>
-        <ActivityIndicator size="large" />
+      <View style={[style.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={style.container}>
+    <View style={[style.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={users}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={style.emptyText}>{t('likes.noLikes')}</Text>}
+        ListEmptyComponent={<Text style={[style.emptyText, { color: colors.muted }]}>{t('likes.noLikes')}</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={style.likeRow}
+            style={[style.likeRow, { borderBottomColor: colors.border }]}
             onPress={() => navigation.navigate(Routes.UserProfile, { userId: item.id })}
           >
             <View style={style.likeAvatarWrap}>
@@ -63,10 +65,10 @@ const PostLikes = ({ route, navigation }) => {
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text style={style.likeText}>
-                <Text style={style.likeName}>{item.fullName || item.username}</Text>
+              <Text style={[style.likeText, { color: colors.subText }]}>
+                <Text style={[style.likeName, { color: colors.text }]}>{item.fullName || item.username}</Text>
                 <Text> </Text>
-                <Text>@{item.username}</Text>
+                <Text style={{ color: colors.subText }}>@{item.username}</Text>
               </Text>
             </View>
           </TouchableOpacity>

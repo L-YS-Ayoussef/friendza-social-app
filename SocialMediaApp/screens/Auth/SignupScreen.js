@@ -7,14 +7,17 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
+  Image 
 } from 'react-native';
 import { Routes } from '../../navigation/Routes';
 import { useAuth } from '../../context/AuthContext';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const SignupScreen = ({ navigation }) => {
   const { signUp } = useAuth();
+  const { mode, colors } = useThemeMode();
 
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -48,63 +51,93 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
+  const logoSource = require('../../assets/images/branding/frienza-mark.png');
+
   return (
-    <SafeAreaView style={style.container}>
-      <Text style={[style.title]}>{t('auth.signUp')}</Text>
-      <Text style={[style.subtitle]}>{t('auth.getStarted')}</Text>
+    <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
+    <Image
+      source={logoSource}
+      style={{ width: 250, height: 100, resizeMode: 'contain', alignSelf: 'center', marginBottom: 50 }}
+    />
+      <Text style={[style.title, rtlText, { color: colors.text }]}>{t('auth.signup')}</Text>
+      <Text style={[style.subtitle, rtlText, { color: colors.subText }]}>{t('auth.getStarted')}</Text>
 
       <TextInput
-        style={[style.input, rtlInput]}
+        style={[
+          style.input,
+          rtlInput,
+          { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+        ]}
         placeholder={t('auth.fullName')}
         value={fullName}
         onChangeText={setFullName}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
       />
 
       <TextInput
-        style={[style.input, rtlInput]}
+        style={[
+          style.input,
+          rtlInput,
+          { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+        ]}
         placeholder={t('auth.username')}
         autoCapitalize="none"
         value={username}
         onChangeText={setUsername}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
       />
 
       <TextInput
-        style={[style.input, rtlInput]}
+        style={[
+          style.input,
+          rtlInput,
+          { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+        ]}
         placeholder={t('auth.email')}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
       />
 
       <TextInput
-        style={[style.input, rtlPasswordInput]}
+        style={[
+          style.input,
+          rtlPasswordInput,
+          { backgroundColor: colors.surface1, borderColor: colors.border, color: colors.text },
+        ]}
         placeholder={t('auth.password')}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
       />
 
       <TouchableOpacity
         onPress={onSignup}
-        style={[style.button, isSubmitting && style.buttonDisabled]}
+        style={[
+          style.button,
+          { backgroundColor: colors.primary },
+          isSubmitting && style.buttonDisabled,
+        ]}
         disabled={isSubmitting}
       >
         {isSubmitting ? (
-          <ActivityIndicator color="#FFFFFF" />
+          <ActivityIndicator color={colors.onPrimary} />
         ) : (
-          <Text style={style.buttonText}>{t('auth.signup')}</Text>
+          <Text style={[style.buttonText, { color: colors.onPrimary }]}>{t('auth.signUp')}</Text>
         )}
       </TouchableOpacity>
 
-      <View style={style.footerRow}>
-        <Text style={style.footerText}>{t('auth.haveAccount')}   </Text>
+      <View style={[style.footerRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <Text style={[style.footerText, { color: colors.subText }]}>{t('auth.haveAccount')} </Text>
         <TouchableOpacity onPress={() => navigation.navigate(Routes.Login)}>
-          <Text style={style.footerLink}>{t('auth.login')}</Text>
+          <Text style={[style.footerLink, { color: colors.primary }]}>{t('auth.login')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

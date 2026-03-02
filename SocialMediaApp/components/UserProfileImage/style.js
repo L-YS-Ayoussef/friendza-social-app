@@ -7,6 +7,16 @@ const style = StyleSheet.create({
     borderWidth: 1,
     padding: horizontalScale(3),
   },
+  ring: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+  ringInner: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export default style;

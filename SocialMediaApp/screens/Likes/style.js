@@ -5,9 +5,9 @@ import { getFontFamily } from '../../assets/fonts/helper';
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: horizontalScale(16),
     paddingTop: verticalScale(12),
+    // backgroundColor from tokens in component
   },
   centered: {
     flex: 1,
@@ -17,8 +17,8 @@ const style = StyleSheet.create({
   title: {
     fontFamily: getFontFamily('Inter', '700'),
     fontSize: scaleFontSize(20),
-    color: '#111827',
     marginBottom: verticalScale(14),
+    // color from tokens in component
   },
   row: {
     flexDirection: 'row',
@@ -26,17 +26,17 @@ const style = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: verticalScale(10),
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    // borderBottomColor from tokens
   },
   text: {
     flex: 1,
     marginRight: horizontalScale(10),
-    color: '#334155',
     fontFamily: getFontFamily('Inter', '400'),
+    // color from tokens
   },
   bold: {
     fontFamily: getFontFamily('Inter', '600'),
-    color: '#111827',
+    // color from tokens
   },
   thumb: {
     width: horizontalScale(44),
@@ -46,15 +46,15 @@ const style = StyleSheet.create({
   emptyText: {
     marginTop: verticalScale(20),
     textAlign: 'center',
-    color: '#94A3B8',
     fontFamily: getFontFamily('Inter', '400'),
+    // color from tokens
   },
   likeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    // borderBottomColor from tokens
   },
 
   likeAvatarWrap: {
@@ -62,13 +62,13 @@ const style = StyleSheet.create({
   },
 
   likeText: {
-    color: '#64748B',
     fontSize: 14,
+    // color from tokens
   },
 
   likeName: {
-    color: '#111827',
     fontWeight: '700',
+    // color from tokens
   },
 });
 

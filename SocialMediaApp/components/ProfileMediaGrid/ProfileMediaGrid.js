@@ -8,9 +8,14 @@ import { useAuth } from '../../context/AuthContext';
 import PostActionsSheet from '../PostActionsSheet/PostActionsSheet';
 import BottomToast from '../BottomToast/BottomToast';
 import style from './style';
+import { useThemeMode } from '../../context/ThemeContext';
+import useT from '../../i18n/useT';
 
 const ProfileMediaGrid = ({ endpoint }) => {
   const navigation = useNavigation();
+  const { colors } = useThemeMode();
+  const { t } = useT();
+
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -135,7 +140,7 @@ const ProfileMediaGrid = ({ endpoint }) => {
   if (isLoading) {
     return (
       <View style={style.centered}>
-        <ActivityIndicator />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -143,13 +148,13 @@ const ProfileMediaGrid = ({ endpoint }) => {
   if (!items.length) {
     return (
       <View style={style.centered}>
-        <Text>No items yet</Text>
+        <Text style={[style.emptyText, { color: colors.muted }]}>{t('profile.noPostsYet')}</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         data={items}
         numColumns={3}
@@ -173,14 +178,15 @@ const ProfileMediaGrid = ({ endpoint }) => {
               }}
             >
               {mediaType === 'video' ? (
-                <Video source={{ uri: mediaUrl }} style={style.thumb} resizeMode="cover" paused />
+                <Video source={{ uri: mediaUrl }} style={[style.thumb, { backgroundColor: colors.surface2 }]} resizeMode="cover" paused />
               ) : (
-                <Image source={{ uri: mediaUrl }} style={style.thumb} />
+                <Image source={{ uri: mediaUrl }} style={[style.thumb, { backgroundColor: colors.surface2 }]} />
               )}
             </Pressable>
           );
         }}
       />
+
       <PostActionsSheet
         visible={actionsVisible}
         onClose={closeActions}
@@ -201,11 +207,11 @@ const ProfileMediaGrid = ({ endpoint }) => {
       <BottomToast ref={toastRef} />
 
       {isFetchingActionData ? (
-        <View style={style.overlay}>
-          <ActivityIndicator size="large" color="#111827" />
+        <View style={[style.overlay, { backgroundColor: colors.scrim }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : null}
-  </View>
+    </View>
   );
 };
 

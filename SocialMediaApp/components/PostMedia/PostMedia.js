@@ -1,13 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import Video from 'react-native-video';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const PostMedia = ({ mediaType = 'image', mediaUrl, imageStyle }) => {
   const videoRef = useRef(null);
   const [paused, setPaused] = useState(false);
+  const { colors } = useThemeMode();
 
   if (!mediaUrl) {
-    return <View style={imageStyle} />;
+    return <View style={[imageStyle, { backgroundColor: colors.surface2 }]} />;
   }
 
   if (mediaType === 'video') {
@@ -25,13 +27,7 @@ const PostMedia = ({ mediaType = 'image', mediaUrl, imageStyle }) => {
     );
   }
 
-  return (
-    <Image
-      source={{ uri: mediaUrl }}
-      style={imageStyle}
-      resizeMode="cover"
-    />
-  );
+  return <Image source={{ uri: mediaUrl }} style={imageStyle} resizeMode="cover" />;
 };
 
 export default PostMedia;

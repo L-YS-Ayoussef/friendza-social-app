@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, SafeAreaView, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, FlatList, SafeAreaView, Text, View, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import api, { resolveMediaUrl } from '../../services/api';
 import UserProfileImage from '../../components/UserProfileImage/UserProfileImage';
@@ -7,12 +7,14 @@ import { horizontalScale } from '../../assets/styles/scaling';
 import { Routes } from '../../navigation/Routes';
 import style from './style';
 import useT from '../../i18n/useT';
+import { useThemeMode } from '../../context/ThemeContext';
 
 const RecentLikes = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const { t, isRTL } = useT();
+  const { colors } = useThemeMode();
   const rtlText = { textAlign: isRTL ? 'right' : 'left' };
 
   const loadLikes = async () => {
@@ -35,7 +37,7 @@ const RecentLikes = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-  
+
   useFocusEffect(
     useCallback(() => {
       loadLikes();
@@ -44,40 +46,37 @@ const RecentLikes = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={style.container}>
+      <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
         <View style={style.centered}>
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={style.container}>
-      <Text style={style.title}>{t('likes.recentLikes')}</Text>
+    <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
+      <Text style={[style.title, rtlText, { color: colors.text }]}>{t('likes.recentLikes')}</Text>
 
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={style.emptyText}>{t('likes.noLikes')}</Text>}
+        ListEmptyComponent={<Text style={[style.emptyText, { color: colors.muted }]}>{t('likes.noLikes')}</Text>}
         renderItem={({ item }) => (
-          <View style={style.likeRow}>
+          <View style={[style.likeRow, { borderBottomColor: colors.border }]}>
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.UserProfile, { userId: item.likerId })}
               style={style.likeAvatarWrap}
             >
-              <UserProfileImage
-                imageDimensions={horizontalScale(42)}
-                profileImage={item.likerAvatarUrl}
-              />
+              <UserProfileImage imageDimensions={horizontalScale(42)} profileImage={item.likerAvatarUrl} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={{ flex: 1 }}
               onPress={() => navigation.navigate(Routes.PostViewer, { postId: item.postId })}
             >
-              <Text style={style.likeText}>
-                <Text style={style.likeName}>{item.likerName}</Text>
+              <Text style={[style.likeText, { color: colors.subText }]}>
+                <Text style={[style.likeName, { color: colors.text }]}>{item.likerName}</Text>
                 <Text> {t('post.likedYourPost')}</Text>
               </Text>
             </TouchableOpacity>

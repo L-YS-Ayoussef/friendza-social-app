@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   Image,
-  ScrollView,
   Text,
   View,
   TouchableOpacity,
@@ -20,7 +19,7 @@ import {
   faPen,
   faCamera,
   faImages,
-  faTrash
+  faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
@@ -36,17 +35,15 @@ import useT from '../../i18n/useT';
 const Profile = ({ navigation }) => {
   const { signOut } = useAuth();
   const { colors } = useThemeMode();
+  const { t } = useT();
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAvatarActions, setShowAvatarActions] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  
-  const { t } = useT();
-  
+
   const openFollowList = (type) => {
     if (!profile?.id) return;
-
     navigation.navigate(Routes.FollowList, {
       userId: profile.id,
       type, // 'followers' | 'following'
@@ -132,10 +129,7 @@ const Profile = ({ navigation }) => {
     if (Platform.OS !== 'android') return true;
 
     try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CAMERA
-      );
-
+      const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
       console.log('Camera permission error:', err);
@@ -147,10 +141,8 @@ const Profile = ({ navigation }) => {
     if (Platform.OS !== 'android') return true;
 
     try {
-      // Android 13+
       const mediaPermission = PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES;
       const legacyPermission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-
       const permissionToAsk = mediaPermission || legacyPermission;
 
       const granted = await PermissionsAndroid.request(permissionToAsk);
@@ -183,9 +175,7 @@ const Profile = ({ navigation }) => {
     }
 
     const asset = result.assets?.[0];
-    if (asset) {
-      uploadAvatar(asset);
-    }
+    if (asset) uploadAvatar(asset);
   };
 
   const onPickFromGallery = async () => {
@@ -210,9 +200,7 @@ const Profile = ({ navigation }) => {
     }
 
     const asset = result.assets?.[0];
-    if (asset) {
-      uploadAvatar(asset);
-    }
+    if (asset) uploadAvatar(asset);
   };
 
   if (isLoading) {
@@ -220,7 +208,7 @@ const Profile = ({ navigation }) => {
       <SafeAreaProvider>
         <SafeAreaView style={[globalStyle.flex, { backgroundColor: colors.background }]}>
           <View style={[globalStyle.flex, { justifyContent: 'center', alignItems: 'center' }]}>
-            <ActivityIndicator size="large" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         </SafeAreaView>
       </SafeAreaProvider>
@@ -239,30 +227,39 @@ const Profile = ({ navigation }) => {
         edges={['top', 'right', 'left', 'bottom']}
         style={[globalStyle.flex, { backgroundColor: colors.background }]}
       >
-        <View  style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <View style={style.topHeaderRow}>
             {/* Left: Create Post */}
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.CreatePost)}
-              style={[style.iconButton, { backgroundColor: colors.card }]}
+              style={[
+                style.iconButton,
+                { backgroundColor: colors.surface2, borderColor: colors.border, borderWidth: 1 },
+              ]}
             >
-              <FontAwesomeIcon icon={faPlus} size={18} color={colors.text} />
+              <FontAwesomeIcon icon={faPlus} size={18} color={colors.icon} />
             </TouchableOpacity>
 
             {/* Right: Settings + Logout */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
                 onPress={() => navigation.navigate(Routes.Settings)}
-                style={[style.iconButton, { backgroundColor: colors.card }]}
+                style={[
+                  style.iconButton,
+                  { backgroundColor: colors.surface2, borderColor: colors.border, borderWidth: 1 },
+                ]}
               >
-                <FontAwesomeIcon icon={faGear} size={18} color={colors.text} />
+                <FontAwesomeIcon icon={faGear} size={18} color={colors.icon} />
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={signOut}
-                style={[style.iconButton, { backgroundColor: colors.card, marginLeft: 8 }]}
+                style={[
+                  style.iconButton,
+                  { backgroundColor: colors.surface2, borderColor: colors.border, borderWidth: 1, marginLeft: 8 },
+                ]}
               >
-                <FontAwesomeIcon icon={faSignOutAlt} size={18} color={colors.text} />
+                <FontAwesomeIcon icon={faSignOutAlt} size={18} color={colors.icon} />
               </TouchableOpacity>
             </View>
           </View>
@@ -277,12 +274,12 @@ const Profile = ({ navigation }) => {
                 disabled={isUploadingAvatar}
               >
                 {isUploadingAvatar ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={colors.onPrimary} />
                 ) : (
                   <FontAwesomeIcon
                     icon={profile?.avatarUrl ? faPen : faPlus}
                     size={12}
-                    color="#fff"
+                    color={colors.onPrimary}
                   />
                 )}
               </TouchableOpacity>
@@ -292,26 +289,26 @@ const Profile = ({ navigation }) => {
           {showAvatarActions && (
             <View style={style.avatarActionRow}>
               <TouchableOpacity
-                style={[style.avatarActionIcon, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={[style.avatarActionIcon, { backgroundColor: colors.surface2, borderColor: colors.border }]}
                 onPress={onOpenCamera}
               >
-                <FontAwesomeIcon icon={faCamera} size={16} color={colors.text} />
+                <FontAwesomeIcon icon={faCamera} size={16} color={colors.icon} />
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[style.avatarActionIcon, { backgroundColor: colors.card, borderColor: colors.border }]}
+                style={[style.avatarActionIcon, { backgroundColor: colors.surface2, borderColor: colors.border }]}
                 onPress={onPickFromGallery}
               >
-                <FontAwesomeIcon icon={faImages} size={16} color={colors.text} />
+                <FontAwesomeIcon icon={faImages} size={16} color={colors.icon} />
               </TouchableOpacity>
 
               {profile?.avatarUrl ? (
                 <TouchableOpacity
-                  style={[style.avatarActionIcon, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  style={[style.avatarActionIcon, { backgroundColor: colors.surface2, borderColor: colors.border }]}
                   onPress={onRemoveAvatar}
                   disabled={isUploadingAvatar}
                 >
-                  <FontAwesomeIcon icon={faTrash} size={16} color="#EF4444" />
+                  <FontAwesomeIcon icon={faTrash} size={16} color={colors.error} />
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -329,6 +326,7 @@ const Profile = ({ navigation }) => {
                 <Text style={[style.statType, { color: colors.subText }]}>{t('profile.following')}</Text>
               </View>
             </TouchableOpacity>
+
             <View style={[style.statBorder, { borderColor: colors.border }]} />
 
             <TouchableOpacity onPress={() => openFollowList('followers')}>
@@ -337,6 +335,7 @@ const Profile = ({ navigation }) => {
                 <Text style={[style.statType, { color: colors.subText }]}>{t('profile.followers')}</Text>
               </View>
             </TouchableOpacity>
+
             <View style={[style.statBorder, { borderColor: colors.border }]} />
 
             <View>

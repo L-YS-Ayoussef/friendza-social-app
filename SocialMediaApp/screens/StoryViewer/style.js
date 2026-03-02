@@ -1,6 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { horizontalScale, verticalScale, scaleFontSize } from '../../assets/styles/scaling';
-import { getFontFamily } from '../../assets/fonts/helper';
 
 const style = StyleSheet.create({
   container: {
@@ -14,7 +12,7 @@ const style = StyleSheet.create({
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.18)',
+    // backgroundColor is applied dynamically from tokens in StoryViewer.js
   },
 
   safeOverlay: {
@@ -59,12 +57,25 @@ const style = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  headerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginRight: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+
   headerName: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
-  
+
   headerTimeText: {
     color: 'rgba(255,255,255,0.85)',
     fontSize: 11,
@@ -93,18 +104,6 @@ const style = StyleSheet.create({
 
   rightZone: {
     flex: 1,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  headerAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginRight: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
 });
 
