@@ -67,9 +67,6 @@ const Settings = () => {
 
   return (
     <SafeAreaView style={[style.container, { backgroundColor: colors.background }]}>
-      {/* <Text style={[style.title, { color: colors.text, textAlign: isRTL ? 'right' : 'left' }]}>
-        {t('settings.title')}
-      </Text> */}
 
       {/* Dark Mode */}
       <View

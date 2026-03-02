@@ -17,14 +17,12 @@ const style = StyleSheet.create({
   username: {
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(16),
-    // color from tokens in UserPost.js
   },
 
   location: {
     fontFamily: getFontFamily('Inter', '400'),
     fontSize: scaleFontSize(16),
     marginTop: verticalScale(5),
-    // color from tokens in UserPost.js
   },
 
   mediaContainer: {
@@ -32,15 +30,13 @@ const style = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 12,
     overflow: 'hidden',
-    // backgroundColor from tokens in UserPost.js (via container)
   },
 
   postImage: {
     width: '100%',
     height: 260,
     borderRadius: 10,
-    marginTop: 8, // keep if you want spacing, remove if not needed
-    // backgroundColor from tokens in PostMedia fallback / container
+    marginTop: 8,
   },
 
   postImageSource: {
@@ -53,7 +49,6 @@ const style = StyleSheet.create({
     marginTop: verticalScale(5),
     paddingBottom: verticalScale(8),
     borderBottomWidth: 1,
-    // borderBottomColor from tokens in UserPost.js
   },
 
   userPostStats: { marginLeft: horizontalScale(10), flexDirection: 'row' },
@@ -63,13 +58,11 @@ const style = StyleSheet.create({
   userPostStatText: {
     marginLeft: horizontalScale(3),
     marginTop: -2,
-    // color from tokens in UserPost.js
   },
 
   postMetaText: {
     marginTop: 2,
     fontSize: 12,
-    // color from tokens in UserPost.js
   },
 });
 

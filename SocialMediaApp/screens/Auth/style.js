@@ -7,19 +7,16 @@ const style = StyleSheet.create({
     flex: 1,
     paddingHorizontal: horizontalScale(20),
     justifyContent: 'center',
-    // backgroundColor from tokens in screen
   },
   title: {
     fontSize: scaleFontSize(26),
     fontFamily: getFontFamily('Inter', '700'),
     marginBottom: verticalScale(8),
-    // color from tokens in screen
   },
   subtitle: {
     fontSize: scaleFontSize(14),
     marginBottom: verticalScale(24),
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens in screen
   },
   input: {
     borderWidth: 1,
@@ -28,14 +25,12 @@ const style = StyleSheet.create({
     paddingVertical: verticalScale(12),
     marginBottom: verticalScale(12),
     fontFamily: getFontFamily('Inter', '400'),
-    // backgroundColor/borderColor/color from tokens in screen
   },
   button: {
     borderRadius: 10,
     paddingVertical: verticalScale(13),
     alignItems: 'center',
     marginTop: verticalScale(4),
-    // backgroundColor from tokens in screen
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -43,7 +38,6 @@ const style = StyleSheet.create({
   buttonText: {
     fontSize: scaleFontSize(15),
     fontFamily: getFontFamily('Inter', '600'),
-    // color from tokens in screen
   },
   footerRow: {
     justifyContent: 'center',
@@ -51,11 +45,9 @@ const style = StyleSheet.create({
   },
   footerText: {
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens in screen
   },
   footerLink: {
     fontFamily: getFontFamily('Inter', '600'),
-    // color from tokens in screen
   },
 });
 

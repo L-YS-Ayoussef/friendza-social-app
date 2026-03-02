@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-// Change this for real phone testing (same Wi-Fi as your backend machine)
 const LAN_IP = '192.168.1.10';
 
 const API_ORIGIN = Platform.select({

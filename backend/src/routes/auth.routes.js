@@ -23,7 +23,7 @@ const mapUser = (row) => ({
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
-    const { username, email, password, fullName } = req.body;
+    const { username, email, password, fullName, bio } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'username, email and password are required' });
@@ -36,6 +36,7 @@ router.post('/signup', async (req, res) => {
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim().toLowerCase();
     const safeFullName = fullName ? fullName.trim() : null;
+    const safeBio = bio ? String(bio).trim() : null;
 
     const existingUser = await pool.query(
       'SELECT id FROM users WHERE username = $1 OR email = $2',
@@ -50,11 +51,11 @@ router.post('/signup', async (req, res) => {
 
     const insertResult = await pool.query(
       `
-      INSERT INTO users (username, email, password_hash, full_name)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO users (username, email, password_hash, full_name, bio)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id, username, email, full_name, bio, avatar_url, created_at
       `,
-      [normalizedUsername, normalizedEmail, passwordHash, safeFullName]
+      [normalizedUsername, normalizedEmail, passwordHash, safeFullName, safeBio]
     );
 
     const user = mapUser(insertResult.rows[0]);

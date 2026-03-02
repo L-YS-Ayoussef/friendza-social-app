@@ -154,7 +154,6 @@ router.get('/feed', authMiddleware, async (req, res) => {
 });
 
 // GET /api/posts/recent-likes
-// Likes on the current user's posts (excluding self-likes)
 router.get('/recent-likes', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -610,7 +609,7 @@ router.put('/:postId', authMiddleware, upload.single('media'), async (req, res) 
   }
 });
 
-// DELETE /api/posts/:postId (delete post - owner only)
+// DELETE /api/posts/:postId
 router.delete('/:postId', authMiddleware, async (req, res) => {
   const client = await pool.connect();
   try {

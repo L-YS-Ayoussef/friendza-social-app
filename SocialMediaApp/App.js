@@ -8,14 +8,14 @@ import { AppPreferencesProvider } from './context/AppPreferencesContext';
 const AppContent = () => {
   const { mode, colors } = useThemeMode();
 
-  // ✅ Navigation theme driven by your token colors
+  // Navigation theme driven by your token colors
   const navTheme = {
     ...(mode === 'dark' ? DarkTheme : DefaultTheme),
     colors: {
       ...(mode === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
       primary: colors.primary,
       background: colors.background,
-      card: colors.surface2, // header/drawer cards
+      card: colors.surface2,
       text: colors.text,
       border: colors.border,
       notification: colors.tertiary,

@@ -17,12 +17,10 @@ const style = StyleSheet.create({
     borderRadius: horizontalScale(17),
     alignItems: 'center',
     justifyContent: 'center',
-    // backgroundColor applied from tokens in Home.js
   },
   appName: {
     fontFamily: getFontFamily('Inter', '700'),
     fontSize: scaleFontSize(20),
-    // color applied from tokens in Home.js
   },
   userStoryContainer: {
     marginTop: verticalScale(10),
@@ -40,14 +38,12 @@ const style = StyleSheet.create({
     borderRadius: horizontalScale(33),
     alignItems: 'center',
     justifyContent: 'center',
-    // border/background applied from tokens in Home.js
   },
   addStoryText: {
     marginTop: verticalScale(4),
     fontSize: scaleFontSize(11),
     fontFamily: getFontFamily('Inter', '500'),
     textAlign: 'center',
-    // color applied from tokens in Home.js
   },
   userPostContainer: {
     marginHorizontal: horizontalScale(16),
@@ -60,7 +56,6 @@ const style = StyleSheet.create({
     fontFamily: getFontFamily('Inter', '400'),
     fontSize: scaleFontSize(13),
     textAlign: 'center',
-    // color applied from tokens in Home.js
   },
 });
 

@@ -24,6 +24,7 @@ const SignupScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bio, setBio] = useState('');
 
   const { t, isRTL } = useT();
   const rtlText = { textAlign: isRTL ? 'right' : 'left' };
@@ -43,6 +44,7 @@ const SignupScreen = ({ navigation }) => {
         username,
         email,
         password,
+        bio,
       });
     } catch (error) {
       Alert.alert(t('auth.signupFailedTitle'), error.message);
@@ -100,6 +102,23 @@ const SignupScreen = ({ navigation }) => {
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.primary}
+      />
+      
+      <TextInput
+        style={[
+          style.input,
+          rtlInput,
+          {
+            backgroundColor: colors.surface1,
+            borderColor: colors.border,
+            color: colors.text,
+          },
+        ]}
+        placeholder={t('auth.bioOptional')}
+        value={bio}
+        onChangeText={setBio}
         placeholderTextColor={colors.muted}
         selectionColor={colors.primary}
       />

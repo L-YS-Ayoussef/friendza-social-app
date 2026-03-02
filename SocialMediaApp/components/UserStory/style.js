@@ -11,7 +11,6 @@ const style = StyleSheet.create({
     fontSize: scaleFontSize(14),
     marginTop: verticalScale(8),
     textAlign: 'center',
-    // color from tokens in UserStory.js
   },
 });
 

@@ -29,7 +29,6 @@ const formatStoryCreationTime = (value) => {
 
 const softenScrim = (rgbaStr, alpha = 0.18) => {
   if (typeof rgbaStr !== 'string') return `rgba(0,0,0,${alpha})`;
-  // expected: rgba(r,g,b,a)
   const m = rgbaStr.match(/^rgba\((\s*\d+\s*),(\s*\d+\s*),(\s*\d+\s*),\s*[\d.]+\s*\)$/i);
   if (!m) return `rgba(0,0,0,${alpha})`;
   return `rgba(${m[1]},${m[2]},${m[3]},${alpha})`;

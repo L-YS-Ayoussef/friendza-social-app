@@ -12,7 +12,6 @@ const style = StyleSheet.create({
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    // backgroundColor is applied dynamically from tokens in StoryViewer.js
   },
 
   safeOverlay: {

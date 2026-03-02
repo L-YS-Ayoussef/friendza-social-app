@@ -95,7 +95,7 @@ const PostViewer = ({ route, navigation }) => {
   }
 
   const closeActions = () => setActionsVisible(false);
-  const onView = () => {}; // already viewing
+  const onView = () => {};
 
   const onEdit = () => {
     navigation.navigate(Routes.CreatePost, {

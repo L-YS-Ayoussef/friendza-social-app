@@ -6,7 +6,6 @@ const style = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: horizontalScale(20),
-    // backgroundColor from tokens in screens
   },
   content: {
     paddingTop: verticalScale(20),
@@ -16,19 +15,16 @@ const style = StyleSheet.create({
     fontSize: scaleFontSize(24),
     fontFamily: getFontFamily('Inter', '700'),
     marginBottom: verticalScale(6),
-    // color from tokens in screens
   },
   subtitle: {
     fontSize: scaleFontSize(13),
     marginBottom: verticalScale(18),
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens in screens
   },
   label: {
     marginBottom: verticalScale(6),
     fontFamily: getFontFamily('Inter', '500'),
     fontSize: scaleFontSize(13),
-    // color from tokens in screens
   },
   input: {
     borderWidth: 1,
@@ -37,7 +33,6 @@ const style = StyleSheet.create({
     paddingVertical: verticalScale(12),
     marginBottom: verticalScale(14),
     fontFamily: getFontFamily('Inter', '400'),
-    // backgroundColor/borderColor/color from tokens in screens
   },
   textArea: {
     minHeight: verticalScale(90),
@@ -57,7 +52,6 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    // backgroundColor/borderColor from tokens in screens
   },
   previewImage: {
     width: '100%',
@@ -65,14 +59,12 @@ const style = StyleSheet.create({
   },
   previewPlaceholder: {
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens in screens
   },
   button: {
     borderRadius: 10,
     paddingVertical: verticalScale(13),
     alignItems: 'center',
     marginTop: verticalScale(8),
-    // backgroundColor from tokens in screens
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -80,7 +72,6 @@ const style = StyleSheet.create({
   buttonText: {
     fontFamily: getFontFamily('Inter', '600'),
     fontSize: scaleFontSize(15),
-    // color from tokens in screens
   },
   sourceRow: {
     flexDirection: 'row',
@@ -95,7 +86,6 @@ const style = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    // backgroundColor/borderColor from tokens in screens
   },
 });
 

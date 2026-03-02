@@ -46,7 +46,7 @@ const Profile = ({ navigation }) => {
     if (!profile?.id) return;
     navigation.navigate(Routes.FollowList, {
       userId: profile.id,
-      type, // 'followers' | 'following'
+      type,
     });
   };
 

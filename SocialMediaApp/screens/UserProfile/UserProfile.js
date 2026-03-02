@@ -65,7 +65,7 @@ const UserProfile = ({ route, navigation }) => {
     try {
       setIsSubmitting(true);
       await api.post(`/users/${user.id}/follow`);
-      await loadProfile(); // refresh unlock + stats + posts
+      await loadProfile();
     } catch (error) {
       Alert.alert(t('common.error'), error?.response?.data?.message || t('post.updateFollowFailed'));
     } finally {

@@ -203,7 +203,7 @@ router.get('/suggestions', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ UPDATED: GET /api/users/:userId/profile (adds followsMe)
+// GET /api/users/:userId/profile (adds followsMe)
 router.get('/:userId/profile', authMiddleware, async (req, res) => {
   try {
     const userId = Number(req.params.userId);
@@ -275,7 +275,7 @@ router.get('/:userId/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ NEW: GET /api/users/:userId/posts
+// GET /api/users/:userId/posts
 router.get('/:userId/posts', authMiddleware, async (req, res) => {
   try {
     const userId = Number(req.params.userId);
@@ -330,7 +330,7 @@ router.get('/:userId/posts', authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ NEW: DELETE /api/users/:userId/follower
+// DELETE /api/users/:userId/follower
 router.delete('/:userId/follower', authMiddleware, async (req, res) => {
   try {
     const followerUserId = Number(req.params.userId);

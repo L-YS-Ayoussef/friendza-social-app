@@ -1,4 +1,3 @@
-// ui/i18n/t.js
 import { translations } from './translations';
 
 function getNested(obj, path) {

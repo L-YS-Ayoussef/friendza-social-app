@@ -68,12 +68,11 @@ const Home = ({ navigation }) => {
     const seen = new Set();
     const circles = [];
 
-    // reverse so the circle uses the latest story thumbnail/name
     for (let i = stories.length - 1; i >= 0; i--) {
       const s = stories[i];
       if (!seen.has(s.userId)) {
         seen.add(s.userId);
-        circles.unshift(s); // keep original visual order
+        circles.unshift(s);
       }
     }
 
@@ -133,9 +132,8 @@ const Home = ({ navigation }) => {
       setStories(storiesData);
       setPosts(postsData);
 
-      // optional debug
-      console.log('Stories count:', storiesData.length);
-      console.log('Posts count:', postsData.length);
+      // console.log('Stories count:', storiesData.length);
+      // console.log('Posts count:', postsData.length);
     } catch (error) {
       console.log('Home feed load error:', error?.response?.data || error.message);
     } finally {
@@ -243,7 +241,7 @@ const Home = ({ navigation }) => {
   const canEdit = useMemo(() => {
     if (!activePost?.createdAt) return false;
     const diff = Date.now() - new Date(activePost.createdAt).getTime();
-    return diff <= 60 * 60 * 1000; // 1 hour
+    return diff <= 60 * 60 * 1000;
   }, [activePost]);
 
   const onView = () => {

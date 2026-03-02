@@ -60,7 +60,7 @@ router.post('/', authMiddleware, upload.single('media'), async (req, res) => {
   }
 });
 
-// POST /api/stories/from-post/:postId  (owner only)
+// POST /api/stories/from-post/:postId 
 router.post('/from-post/:postId', authMiddleware, async (req, res) => {
   try {
     const postId = Number(req.params.postId);
@@ -126,7 +126,7 @@ router.post('/from-post/:postId', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/stories/:storyId (owner only)
+// DELETE /api/stories/:storyId
 router.delete('/:storyId', authMiddleware, async (req, res) => {
   try {
     const storyId = Number(req.params.storyId);

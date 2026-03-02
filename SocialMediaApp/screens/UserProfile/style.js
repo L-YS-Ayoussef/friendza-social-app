@@ -7,7 +7,6 @@ const cellSize = Dimensions.get('window').width / 3;
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor from tokens in component
   },
   listContent: {
     paddingBottom: 24,
@@ -19,7 +18,6 @@ const style = StyleSheet.create({
   },
   centered: {
     flex: 1,
-    // backgroundColor from tokens in component
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -128,7 +126,6 @@ const style = StyleSheet.create({
   thumb: {
     width: '100%',
     height: '100%',
-    // backgroundColor from tokens in component
   },
 });
 

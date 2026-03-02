@@ -32,11 +32,9 @@ const PostActionsSheet = ({
   isOwner,
   canEdit,
 
-  // state for labels
   isFollowingAuthor,
   isSaved,
 
-  // callbacks (must return promises)
   onView,
   onEdit,
   onDelete,
@@ -44,7 +42,6 @@ const PostActionsSheet = ({
   onToggleFollow,
   onToggleSave,
 
-  // toast callback
   showToast,
 }) => {
   const [busyKey, setBusyKey] = useState(null);
@@ -146,7 +143,7 @@ const PostActionsSheet = ({
 
     if (actionKey === 'follow') {
       run('follow', async () => {
-        const nextIsFollowing = await onToggleFollow?.(); // expect boolean
+        const nextIsFollowing = await onToggleFollow?.();
         showToast?.(nextIsFollowing ? t('post.nowFollowing', { username: post.username }) : t('post.unfollowed', { username: post.username }));
         onClose?.();
       });
@@ -155,7 +152,7 @@ const PostActionsSheet = ({
 
     if (actionKey === 'save') {
       run('save', async () => {
-        const nextIsSaved = await onToggleSave?.(); // expect boolean
+        const nextIsSaved = await onToggleSave?.();
         showToast?.(nextIsSaved ? t('post.savedOk') : t('post.unsavedOk'));
         onClose?.();
       });

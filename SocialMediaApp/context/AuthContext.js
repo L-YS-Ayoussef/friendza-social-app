@@ -40,13 +40,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async ({ fullName, username, email, password }) => {
+  const signUp = async ({ fullName, username, email, password, bio }) => {
     try {
       const response = await api.post('/auth/signup', {
         fullName,
         username,
         email,
         password,
+        bio,
       });
 
       const { token: newToken, user: newUser } = response.data;

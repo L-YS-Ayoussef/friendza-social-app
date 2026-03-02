@@ -8,7 +8,7 @@ import useT from '../../i18n/useT';
 import { useThemeMode } from '../../context/ThemeContext';
 
 const FollowList = ({ route, navigation }) => {
-  const { userId, type } = route.params || {}; // type: 'followers' | 'following'
+  const { userId, type } = route.params || {};
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 

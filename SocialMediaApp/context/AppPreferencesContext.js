@@ -8,7 +8,7 @@ const AppPreferencesContext = createContext(null);
 
 export const AppPreferencesProvider = ({ children }) => {
   const [autoPlayStories, setAutoPlayStories] = useState(true);
-  const [language, setLanguage] = useState('en'); // 'en' | 'ar'
+  const [language, setLanguage] = useState('en');
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {

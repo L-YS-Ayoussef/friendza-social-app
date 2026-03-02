@@ -1,4 +1,3 @@
-// ui/i18n/translations.js
 export const translations = {
   en: {
     nav: {
@@ -52,6 +51,7 @@ export const translations = {
       loginFailedTitle: 'Login failed',
       signupFailedTitle: 'Signup failed',
       missingSignupDataBody: 'Username, email and password are required',
+      bioOptional: 'Bio (optional)',
     },
     settings: {
       title: 'Settings',
@@ -207,6 +207,7 @@ export const translations = {
       loginFailedTitle: 'فشل تسجيل الدخول',
       signupFailedTitle: 'فشل إنشاء الحساب',
       missingSignupDataBody: 'اسم المستخدم والبريد وكلمة المرور مطلوبين',
+      bioOptional: 'نبذة (اختياري)',
     },
     settings: {
       title: 'الإعدادات',

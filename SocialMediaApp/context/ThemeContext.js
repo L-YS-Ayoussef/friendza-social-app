@@ -34,14 +34,13 @@ export const ThemeProvider = ({ children }) => {
     await setThemeMode(next);
   };
 
-  // ✅ Use your new token palettes
   const colors = mode === 'dark' ? darkTokens : lightTokens;
 
   const value = useMemo(
     () => ({
       mode,
       colors,
-      brand, // ✅ exposes gradient + accents
+      brand,
       setThemeMode,
       toggleTheme,
       isThemeReady,

@@ -21,7 +21,7 @@ const SHEET_HEIGHT = 260;
 const StoryActionsSheet = ({
   visible,
   onClose,
-  story, // { id, userId, username }
+  story,
   isOwner,
   isFollowingUser,
   onView,
@@ -107,7 +107,7 @@ const StoryActionsSheet = ({
 
     if (key === 'follow') {
       run('follow', async () => {
-        const next = await onToggleFollow?.(); // boolean
+        const next = await onToggleFollow?.();
         showToast?.(
           next ? t('post.nowFollowing', { username: story.username }) : t('post.unfollowed', { username: story.username })
         );

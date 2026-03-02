@@ -11,7 +11,6 @@ const style = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     gap: 10,
-    // backgroundColor should be provided dynamically if used
   },
   ctrlBtn: {
     flexDirection: 'row',
@@ -20,7 +19,6 @@ const style = StyleSheet.create({
   },
   ctrlText: {
     fontSize: 12,
-    // color should be provided dynamically if used
   },
 });
 

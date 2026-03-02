@@ -15,7 +15,6 @@ export default StyleSheet.create({
   thumb: {
     width: '100%',
     height: '100%',
-    // backgroundColor is set from tokens in component
   },
   overlay: {
     position: 'absolute',
@@ -23,7 +22,6 @@ export default StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    // backgroundColor set from tokens in component (colors.scrim)
     alignItems: 'center',
     justifyContent: 'center',
   },

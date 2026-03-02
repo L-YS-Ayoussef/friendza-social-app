@@ -7,7 +7,6 @@ const style = StyleSheet.create({
     flex: 1,
     paddingHorizontal: horizontalScale(16),
     paddingTop: verticalScale(12),
-    // backgroundColor from tokens in component
   },
   centered: {
     flex: 1,
@@ -18,7 +17,6 @@ const style = StyleSheet.create({
     fontFamily: getFontFamily('Inter', '700'),
     fontSize: scaleFontSize(20),
     marginBottom: verticalScale(14),
-    // color from tokens in component
   },
   row: {
     flexDirection: 'row',
@@ -26,17 +24,14 @@ const style = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: verticalScale(10),
     borderBottomWidth: 1,
-    // borderBottomColor from tokens
   },
   text: {
     flex: 1,
     marginRight: horizontalScale(10),
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens
   },
   bold: {
     fontFamily: getFontFamily('Inter', '600'),
-    // color from tokens
   },
   thumb: {
     width: horizontalScale(44),
@@ -47,14 +42,12 @@ const style = StyleSheet.create({
     marginTop: verticalScale(20),
     textAlign: 'center',
     fontFamily: getFontFamily('Inter', '400'),
-    // color from tokens
   },
   likeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    // borderBottomColor from tokens
   },
 
   likeAvatarWrap: {
@@ -63,12 +56,10 @@ const style = StyleSheet.create({
 
   likeText: {
     fontSize: 14,
-    // color from tokens
   },
 
   likeName: {
     fontWeight: '700',
-    // color from tokens
   },
 });
 
