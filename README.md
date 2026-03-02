@@ -120,10 +120,7 @@ Friendza provides a familiar social experience where users can create and share 
 
 A demo video is available in the repository at:
 
-- [`./demo/`](./demo/)
-
-Example:
-- [`demo/app-demo.mp4`](./demo/app-demo.mp4)
+[`demo/app-demo.mp4`](./demo/app-demo.mp4)
 
 Open the video file locally to watch the demo.
 
