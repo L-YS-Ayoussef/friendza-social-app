@@ -118,11 +118,7 @@ Friendza provides a familiar social experience where users can create and share 
 
 ## App Demo
 
-A demo video is available in the repository at:
-
-[`demo/app-demo.mp4`](./demo/app-demo.mp4)
-
-Open the video file locally to watch the demo.
+Demo Video: https://youtu.be/tdnP0PHQZUM
 
 ## License
 
