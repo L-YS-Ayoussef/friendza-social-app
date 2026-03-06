@@ -1,6 +1,6 @@
 # Friendza
 
-![Friendza Logo](./demo/frienza-mark.png)
+![Friendza Logo](./SocialMediaApp/assets/images/branding/frienza-mark.png)
 
 A modern social media app with posts, stories, profiles, and real-time-style interactions—built with a React Native (CLI) mobile client and a Node.js/Express + PostgreSQL backend.
 
